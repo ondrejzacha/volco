@@ -24,6 +24,16 @@ class ToastMessage(BaseModel):
     type: str
 
 
+class Navigation(BaseModel):
+    lists: list[dict]
+    info: dict
+    prev: dict
+
+
+class BrowseResults(BaseModel):
+    navigation: Navigation
+
+
 class VolumioController:
     def __init__(self, socketio: SocketIO):
         self.socketio = socketio
@@ -77,7 +87,7 @@ class VolumioController:
             response_model=ResultList,
         )
 
-    def add_to_playlist(self, playlist: str, track_spec: TrackSpec) -> VolumioResponse:
+    def add_to_playlist(self, playlist: str, track_spec: TrackSpec) -> ToastMessage:
         return self.call(
             message_out="addToPlaylist",
             message_in="pushToastMessage",
@@ -87,35 +97,43 @@ class VolumioController:
 
     def remove_from_playlist(
         self, playlist: str, track_spec: TrackSpec
-    ) -> VolumioResponse:
+    ) -> ToastMessage:
         return self.call(
             message_out="removeFromPlaylist",
             message_in="pushToastMessage",
-            data={"name": playlist, "uri": track_spec.uri,},
+            data={"name": playlist, **track_spec.dict()},
             response_model=ToastMessage,
         )
 
-    def play(self):
+    def play(self) -> None:
         return self.call(message_out="play")
 
-    def pause(self):
+    def pause(self) -> None:
         return self.call(message_out="pause")
 
+    # TODO: model for response?
     def get_state(self):
         return self.call(message_out="getState", message_in="pushState")
 
-    def list_tracks(self):
-        ...
-
-    def create_playlist(self, name: str):
-        ...
-
-    def play_track(self, track_spec: TrackSpec):
+    # TODO: figure out response?
+    def play_track(self, track_spec: TrackSpec) -> None:
         return self.call(message_out="replaceAndPlay", data=track_spec.dict(),)
 
-    def queue_track(self, track_spec: TrackSpec):
+    def queue_track(self, track_spec: TrackSpec) -> ToastMessage:
         return self.call(
             message_out="addToQueue",
             data=track_spec.dict(),
             response_model=ToastMessage,
         )
+
+    # TODO: other lists
+    def list_tracks(self, playlist: str):
+        return self.call(
+            message_out="browseLibrary",
+            message_in="pushBrowseLibrary",
+            data={"uri": f"playlists/{playlist}"},
+            response_model=BrowseResults,
+        )
+
+    def create_playlist(self, name: str):
+        ...

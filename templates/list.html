@@ -1,0 +1,27 @@
+<ul>
+    {% for track in tracks %}
+    <li>
+        <div>{{ track.name }}
+            <form action="http://127.0.0.1:8000/playback/replace" method="POST" enctype="multipart/form-data"
+                target="responseframe" style="display: inline;">
+                <input type="hidden" id="service" name="service" value="mixcloud">
+                <input type="hidden" id="uri" name="uri" value='{{ track.uri }}'>
+                <input type="submit" value="Play track">
+            </form>
+        </div>
+        {% endfor %}
+        
+        <hr />
+
+        <iframe name="responseframe" id="responseframe"></iframe>
+
+        <form action="http://127.0.0.1:8000/pause" method="POST" target="responseframe">
+            <input type="submit" value="Pause">
+        </form>
+
+        <form action="http://127.0.0.1:8000/play" method="POST" target="responseframe">
+            <input type="submit" value="Play">
+        </form>
+
+
+</ul>
