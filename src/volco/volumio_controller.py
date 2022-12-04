@@ -3,13 +3,8 @@ from typing import Any, Callable
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
-from volco.volumio_models import (
-    BrowseResponse,
-    ResultList,
-    ToastMessage,
-    TrackSpec,
-    VolumioResponse,
-)
+from volco.volumio_models import (BrowseResponse, ResultList, ToastMessage,
+                                  TrackSpec, VolumioResponse)
 
 
 class VolumioController:
@@ -126,4 +121,12 @@ class VolumioController:
             message_in="pushCreatePlaylist",
             data={"name": name},
             response_model=VolumioResponse,
+        )
+
+    def delete_playlist(self, name: str):
+        return self.call(
+            message_out="deletePlaylist",
+            message_in="pushDeletePlaylist",
+            data={"name": name},
+            # response_model=VolumioResponse,
         )
