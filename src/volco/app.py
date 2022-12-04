@@ -1,13 +1,13 @@
 from typing import Dict
-from fastapi import FastAPI, Request, Form
-from pydantic import BaseModel
+
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
-from .volumio_controller import VolumioController, TrackSpec
+from pydantic import BaseModel
 from socketIO_client import SocketIO
 
+from .volumio_controller import TrackSpec, VolumioController
 
 app = FastAPI()
 
@@ -27,6 +27,15 @@ vc = VolumioController(socketio)
 
 class AnyData(BaseModel):
     __root__: Dict[str, str]
+
+
+# TODO
+# @app.get("/")
+# (volco list)
+# @app.get("/feeds/{}")  # static?
+# - get feed keywords
+# - post: add keywords
+# - create new feeds / new playlists?
 
 
 @app.get("/health")
@@ -63,7 +72,7 @@ async def queue_track(track_spec: TrackSpec):
 # async def add_to_playlist(track_spec: TrackSpec, playlist: str):
 #     return vc.add_to_playlist(playlist=playlist, track_spec=track_spec)
 
-
+# (volumio list)
 @app.post("/playlist/{playlist}/add")
 async def add_to_playlist(playlist: str, uri: str = Form(), service: str = Form()):
     return vc.add_to_playlist(

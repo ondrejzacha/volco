@@ -1,3 +1,46 @@
+PLAYLIST_PATTERNS = {
+    "maria / spirit blue": ["maria somerville", "spirit blue"],
+    "john gomez / mr pedro / dj python / felix hall": [
+        "john gomez",
+        "john gómez",
+        "felix hall",
+        "dj python",
+        "mr pedro",
+    ],
+    "fergus clark / optimo / lukid": ["fergus clark", "optimo", "lukid",],
+    "willikens/ivkovic": ["ivkovic", "willikens"],
+    "ad93/tasker": ["ad 93", "ad93", "tasker"],
+    "lupini": ["lupini"],
+    "demanding": [
+        "adam oko",
+        "felisha ledesma",
+        "astrid sonne",
+        "sapphire slows",
+        "nabihah iqbal",
+    ],
+    "smart dancey": ["batu", "dj nobu", "four tet", "ben ufo", "upsammy",],
+    "fun dancey": [
+        "call super",
+        "young marco",
+        "carista",
+        "courtesy",
+        "daphni",
+        "yu su",
+    ],
+    "dark dancey": [
+        "mark knekelhuis",
+        "elena colombi",
+        "silvia kastel",
+        "margarita",
+        "john talabot",
+        "lauren duffus",
+        "orpheu the wizard",
+        "martha",
+    ],
+    "ambi": ["malibu", "carla dal forno", "sofie birch", "yu su", "astrid sonne",],
+    "nordi": ["posh isolation", "oqbqbo", "scandinavian star", "croatian amor",],
+}
+
 HEADERS = [
     # Firefox 77 Mac
     {

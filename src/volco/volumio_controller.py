@@ -1,43 +1,21 @@
-from socketIO_client import SocketIO
+from typing import Any, Callable
+
 from pydantic import BaseModel
+from socketIO_client import SocketIO
 
-from typing import Callable, List, Any, Dict
-
-
-class TrackSpec(BaseModel):
-    service: str
-    uri: str
-
-
-class VolumioResponse(BaseModel):
-    success: bool
-    reason: str | None
-
-
-class ResultList(BaseModel):
-    __root__: List[str]
-
-
-class ToastMessage(BaseModel):
-    message: str
-    title: str
-    type: str
-
-
-class Navigation(BaseModel):
-    lists: list[dict]
-    info: dict
-    prev: dict
-
-
-class BrowseResults(BaseModel):
-    navigation: Navigation
+from volco.volumio_models import (
+    BrowseResponse,
+    ResultList,
+    ToastMessage,
+    TrackSpec,
+    VolumioResponse,
+)
 
 
 class VolumioController:
     def __init__(self, socketio: SocketIO):
         self.socketio = socketio
-        self.responses: Dict[str, Any] = {}
+        self.responses: dict[str, Any] = {}
 
     def _create_callback(self, message: str) -> "Callable[[Any], None]":
         def inner(*args):
@@ -105,20 +83,25 @@ class VolumioController:
             response_model=ToastMessage,
         )
 
+    # also volumio REST API
     def play(self) -> None:
         return self.call(message_out="play")
 
+    # also volumio REST API
     def pause(self) -> None:
         return self.call(message_out="pause")
 
+    # also volumio REST API
     # TODO: model for response?
     def get_state(self):
         return self.call(message_out="getState", message_in="pushState")
 
+    # also volumio REST API
     # TODO: figure out response?
     def play_track(self, track_spec: TrackSpec) -> None:
         return self.call(message_out="replaceAndPlay", data=track_spec.dict(),)
 
+    # also volumio REST API
     def queue_track(self, track_spec: TrackSpec) -> ToastMessage:
         return self.call(
             message_out="addToQueue",
@@ -126,14 +109,21 @@ class VolumioController:
             response_model=ToastMessage,
         )
 
+    # also volumio REST API
     # TODO: other lists
-    def list_tracks(self, playlist: str):
+    def list_tracks(self, playlist: str) -> BrowseResponse:
         return self.call(
             message_out="browseLibrary",
             message_in="pushBrowseLibrary",
             data={"uri": f"playlists/{playlist}"},
-            response_model=BrowseResults,
+            response_model=BrowseResponse,
         )
 
+    # Playlists are also created by adding a track to a non-existent playlist
     def create_playlist(self, name: str):
-        ...
+        return self.call(
+            message_out="createPlaylist",
+            message_in="pushCreatePlaylist",
+            data={"name": name},
+            response_model=VolumioResponse,
+        )
