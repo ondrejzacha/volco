@@ -3,8 +3,8 @@ from typing import Any, Callable
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
-from volco.volumio_models import (BrowseResponse, ResultList, ToastMessage,
-                                  TrackSpec, VolumioResponse)
+from .volumio_models import (BrowseResponse, ResultList, ToastMessage,
+                             TrackSpec, VolumioResponse)
 
 
 class VolumioController:
@@ -60,6 +60,7 @@ class VolumioController:
             response_model=ResultList,
         )
 
+    # TODO: use service & uri directly
     def add_to_playlist(self, playlist: str, track_spec: TrackSpec) -> ToastMessage:
         return self.call(
             message_out="addToPlaylist",

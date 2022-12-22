@@ -1,6 +1,8 @@
 from collections import Counter
-from typing import Collection, Sequence
+from pathlib import Path
+from typing import Collection, Mapping, Sequence
 
+import jinja2
 import requests
 from socketIO_client import SocketIO
 
@@ -9,11 +11,16 @@ from .volumio_controller import TrackSpec, VolumioController
 from .volumio_models import BrowseResponse, ListItem
 
 VOLUMIO_URL = "http://192.168.2.22"  # TODO: get from env
+TEMPLATE_DIR = Path("/templates")
+PLAYLIST_HTML_DIR = Path("/static/playlists/")  # TODO: auto mkdir
+PLAYLIST_TEMPLATE_HTML = "list.html"
+LATEST_50_NAME = "- latest 50"
+N_LATEST = 50
 
 
 # def browse_tracks(uri: str, stop_condition: Callable[[Collection[ListItem]], bool]) -> list[ListItem]:
 def browse_tracks(uri: str, max_tracks: int = 1000) -> list[ListItem]:
-    all_tracks = set()
+    all_tracks = []
 
     while len(all_tracks) < max_tracks:
         r = requests.get(f"{VOLUMIO_URL}/api/v1/browse?uri={uri}")
@@ -22,10 +29,10 @@ def browse_tracks(uri: str, max_tracks: int = 1000) -> list[ListItem]:
 
         list_items = browse_response.navigation.lists[-1].items  # TODO: fix lists[-1]
 
-        track_items = set(
-            item for item in list_items if item.type in {"song", "folder"}
-        )
-        all_tracks |= track_items
+        for item in list_items:
+            if item.type not in {"song", "folder"} or item in all_tracks:
+                continue
+            all_tracks.append(item)
 
         next_page = next(
             (
@@ -42,7 +49,7 @@ def browse_tracks(uri: str, max_tracks: int = 1000) -> list[ListItem]:
         print(".", end="")
         uri = next_page.uri
 
-    return list(all_tracks)
+    return all_tracks
 
 
 def filter_tracks(
@@ -69,10 +76,6 @@ def remove_playlist_duplicates(
             )
 
 
-LATEST_50_NAME = "- latest 50"
-N_LATEST = 50
-
-
 def update_new_additions_playlist(
     tracks: Collection[ListItem], volumio_controller: VolumioController
 ) -> None:
@@ -96,7 +99,7 @@ def main():
     socketio = SocketIO("192.168.2.22", 3000)
     vc = VolumioController(socketio)
     print("Getting nts tracks")
-    new_feed_tracks = browse_tracks("mixcloud/user@username=NTSRadio", max_tracks=1000)
+    new_feed_tracks = browse_tracks("mixcloud/user@username=NTSRadio", max_tracks=5_000)
 
     all_new_tracks = set()
 
@@ -122,4 +125,28 @@ def main():
 
     update_new_additions_playlist(all_new_tracks, volumio_controller=vc)
 
-    # generate_html_files(all_playlists)
+    generate_html_files(vc=vc)
+
+
+def generate_html_files(
+    vc: VolumioController, playlists: Collection[str] = None
+) -> None:
+    if playlists is None:
+        # TODO: better response
+        playlists = vc.list_playlists()[0]
+
+    loader = jinja2.FileSystemLoader(TEMPLATE_DIR)
+    environment = jinja2.Environment(loader=loader)
+    template = environment.get_template(PLAYLIST_TEMPLATE_HTML)
+
+    for playlist in playlists:
+        tracks = vc.list_tracks(playlist)
+        # TODO: smarter tracks[::-1]
+        rendered = template.render({"playlist_name": playlist, "tracks": tracks[::-1]})
+        stripped = strip_name(playlist)
+        output_path = PLAYLIST_HTML_DIR / f"{stripped}.html"
+        output_path.write_text(rendered)
+
+
+def strip_name(name: str) -> str:
+    return name.replace(" ", "_").replace(",", "_")
