@@ -6,11 +6,18 @@ import jinja2
 import requests
 from socketIO_client import SocketIO
 
-from .constants import (LATEST_50_NAME, N_LATEST, PLAYLIST_HTML_DIR,
-                        PLAYLIST_PATTERNS, PLAYLIST_TEMPLATE_HTML,
-                        SOCKETIO_PORT, TEMPLATE_DIR, VOLUMIO_URL)
-from .volumio_controller import VolumioController
-from .volumio_models import BrowseResponse, ListItem
+from .constants import (
+    LATEST_50_NAME,
+    N_LATEST,
+    PLAYLIST_HTML_DIR,
+    PLAYLIST_PATTERNS,
+    PLAYLIST_TEMPLATE_HTML,
+    SOCKETIO_PORT,
+    TEMPLATE_DIR,
+    VOLUMIO_URL,
+)
+from .controller import VolumioController
+from .models import BrowseResponse, ListItem
 
 StopCondition = Callable[[Collection[ListItem]], bool]
 
@@ -71,35 +78,33 @@ def filter_tracks(
     ]
 
 
-def remove_playlist_duplicates(
-    playlist: str, volumio_controller: VolumioController
-) -> None:
+def remove_playlist_duplicates(playlist: str, controller: VolumioController) -> None:
     playlist_tracks = browse_tracks(f"playlists/{playlist}")
 
     track_counter = Counter(playlist_tracks)
     for track, count in track_counter.items():
         for _ in range(count - 1):
             print(f"Removing {track.title}")
-            volumio_controller.remove_from_playlist(
+            controller.remove_from_playlist(
                 playlist, service=track.service, uri=track.uri
             )
 
 
 def update_new_additions_playlist(
-    tracks: Collection[ListItem], volumio_controller: VolumioController
+    tracks: Collection[ListItem], controller: VolumioController
 ) -> None:
     new_tracks = list(tracks)[:N_LATEST]
     current_tracks = browse_tracks(f"playlists/{LATEST_50_NAME}")
 
     for track in new_tracks:
-        volumio_controller.add_to_playlist(
+        controller.add_to_playlist(
             playlist=LATEST_50_NAME, service=track.service, uri=track.uri
         )
     extra = len(current_tracks) + len(new_tracks) - N_LATEST
 
     for idx in range(extra):
         track = current_tracks[idx]
-        volumio_controller.remove_from_playlist(
+        controller.remove_from_playlist(
             playlist=LATEST_50_NAME, service=track.service, uri=track.uri
         )
 
@@ -163,6 +168,6 @@ def main():
 
             all_new_tracks.add(track)
 
-    update_new_additions_playlist(all_new_tracks, volumio_controller=vc)
+    update_new_additions_playlist(all_new_tracks, controller=vc)
 
     generate_html_files(vc=vc)

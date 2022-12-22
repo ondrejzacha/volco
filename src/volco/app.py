@@ -8,8 +8,8 @@ from pydantic import BaseModel
 from socketIO_client import SocketIO
 
 from .constants import ALL_PLAYLISTS, SOCKETIO_PORT, VOLUMIO_URL
-from .volumio_controller import TrackSpec, VolumioController
-from .volumio_scraper import strip_name
+from .controller import TrackSpec, VolumioController
+from .scraper import strip_name
 
 app = FastAPI()
 

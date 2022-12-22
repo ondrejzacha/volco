@@ -3,8 +3,7 @@ from typing import Any, Callable
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
-from .volumio_models import (BrowseResponse, ResultList, ToastMessage,
-                             VolumioResponse)
+from .models import BrowseResponse, ResultList, ToastMessage, VolumioResponse
 
 
 class VolumioController:

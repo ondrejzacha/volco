@@ -25,6 +25,6 @@ setup(
     author="Ondrej Zacha",
     long_description_content_type="text/markdown",
     entry_points={"console_scripts": [
-        "refresh = volco.volumio_scraper:main",
+        "refresh = volco.scraper:main",
     ]},
 )
