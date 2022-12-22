@@ -1,29 +1,37 @@
 from collections import Counter
-from typing import Collection, Sequence
+from functools import partial
+from typing import Callable, Collection, Sequence
 
 import jinja2
 import requests
 from socketIO_client import SocketIO
 
-from .constants import (
-    LATEST_50_NAME,
-    N_LATEST,
-    PLAYLIST_HTML_DIR,
-    PLAYLIST_PATTERNS,
-    PLAYLIST_TEMPLATE_HTML,
-    TEMPLATE_DIR,
-    VOLUMIO_URL,
-)
+from .constants import (LATEST_50_NAME, N_LATEST, PLAYLIST_HTML_DIR,
+                        PLAYLIST_PATTERNS, PLAYLIST_TEMPLATE_HTML,
+                        SOCKETIO_PORT, TEMPLATE_DIR, VOLUMIO_URL)
 from .volumio_controller import VolumioController
 from .volumio_models import BrowseResponse, ListItem
 
+StopCondition = Callable[[Collection[ListItem]], bool]
 
-# def browse_tracks(uri: str, stop_condition: Callable[[Collection[ListItem]], bool]) 
-# -> list[ListItem]:
-def browse_tracks(uri: str, max_tracks: int = 1000) -> "list[ListItem]":
+
+def stop_on_max_tracks(tracks: Collection[ListItem], max_tracks: int = 1000) -> bool:
+    return len(tracks) > max_tracks
+
+
+def stop_on_overlap(
+    tracks: Collection[ListItem],
+    existing_tracks: Collection[ListItem],
+    min_overlap: int = 1,
+) -> bool:
+    overlap = set(tracks).intersection(existing_tracks)
+    return len(overlap) >= min_overlap
+
+
+def browse_tracks(uri: str, stop_condition: StopCondition) -> list[ListItem]:
     all_tracks: list[ListItem] = []
 
-    while len(all_tracks) < max_tracks:
+    while not stop_condition(all_tracks):
         r = requests.get(f"http://{VOLUMIO_URL}/api/v1/browse?uri={uri}")
         browse_json = r.json()
         browse_response = BrowseResponse.parse_obj(browse_json)
@@ -96,11 +104,43 @@ def update_new_additions_playlist(
         )
 
 
+def generate_html_files(
+    vc: VolumioController, playlists: Collection[str] = None
+) -> None:
+    if playlists is None:
+        # TODO: better response
+        playlists = vc.list_playlists()[0]
+
+    loader = jinja2.FileSystemLoader(TEMPLATE_DIR)
+    environment = jinja2.Environment(loader=loader)
+    template = environment.get_template(PLAYLIST_TEMPLATE_HTML)
+
+    for playlist in playlists:
+        tracks = vc.list_tracks(playlist)
+        # TODO: smarter tracks[::-1]
+        rendered = template.render({"playlist_name": playlist, "tracks": tracks[::-1]})
+        stripped = strip_name(playlist)
+        output_path = PLAYLIST_HTML_DIR / f"{stripped}.html"
+        output_path.write_text(rendered)
+
+
+def strip_name(name: str) -> str:
+    return name.replace(" ", "_").replace(",", "_")
+
+
 def main():
-    socketio = SocketIO("192.168.2.22", 3000)
+    socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
     vc = VolumioController(socketio)
+
+    existing_tracks = vc.list_tracks(LATEST_50_NAME)
+    stop_condition = partial(
+        stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
+    )
+
     print("Getting nts tracks")
-    new_feed_tracks = browse_tracks("mixcloud/user@username=NTSRadio", max_tracks=5_000)
+    new_feed_tracks = browse_tracks(
+        "mixcloud/user@username=NTSRadio", stop_condition=stop_condition
+    )
 
     all_new_tracks: set[ListItem] = set()
 
@@ -126,27 +166,3 @@ def main():
     update_new_additions_playlist(all_new_tracks, volumio_controller=vc)
 
     generate_html_files(vc=vc)
-
-
-def generate_html_files(
-    vc: VolumioController, playlists: Collection[str] = None
-) -> None:
-    if playlists is None:
-        # TODO: better response
-        playlists = vc.list_playlists()[0]
-
-    loader = jinja2.FileSystemLoader(TEMPLATE_DIR)
-    environment = jinja2.Environment(loader=loader)
-    template = environment.get_template(PLAYLIST_TEMPLATE_HTML)
-
-    for playlist in playlists:
-        tracks = vc.list_tracks(playlist)
-        # TODO: smarter tracks[::-1]
-        rendered = template.render({"playlist_name": playlist, "tracks": tracks[::-1]})
-        stripped = strip_name(playlist)
-        output_path = PLAYLIST_HTML_DIR / f"{stripped}.html"
-        output_path.write_text(rendered)
-
-
-def strip_name(name: str) -> str:
-    return name.replace(" ", "_").replace(",", "_")
