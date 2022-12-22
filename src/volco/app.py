@@ -7,25 +7,22 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
+from starlette.routing import Mount
+
 from .constants import ALL_PLAYLISTS, SOCKETIO_PORT, VOLUMIO_URL
-from .controller import TrackSpec, VolumioController
+from .controller import VolumioController
 from .scraper import strip_name
 
-app = FastAPI()
 
+app = FastAPI(
+    routes=[Mount("/static", app=StaticFiles(directory="static"), name="static")]
+)
+
+templates = Jinja2Templates(directory="templates")
 socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
 vc = VolumioController(socketio)
 
-# TODO: mount as route?
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 
-
-class AnyData(BaseModel):
-    __root__: Dict[str, str]
-
-
-# TODO
 @app.get("/", response_class=HTMLResponse)
 async def get_index(request: Request):
     # TODO: get from volumio on startup
@@ -78,18 +75,14 @@ async def pause():
 async def add_to_playlist(
     playlist: str, uri: str = Form(), service: str = Form()  # noqa: B008
 ):
-    return vc.add_to_playlist(
-        playlist=playlist, track_spec=TrackSpec(service=service, uri=uri)
-    )
+    return vc.add_to_playlist(playlist=playlist, service=service, uri=uri)
 
 
 @app.post("/playlist/{playlist}/remove")
 async def remove_from_playlist(
     playlist: str, uri: str = Form(), service: str = Form()  # noqa: B008
 ):
-    return vc.remove_from_playlist(
-        playlist=playlist, track_spec=TrackSpec(service=service, uri=uri)
-    )
+    return vc.remove_from_playlist(playlist=playlist, service=service, uri=uri)
 
 
 @app.get("/playlist/{playlist}")

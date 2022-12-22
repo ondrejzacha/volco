@@ -35,7 +35,10 @@ def stop_on_overlap(
     return len(overlap) >= min_overlap
 
 
-def browse_tracks(uri: str, stop_condition: StopCondition) -> list[ListItem]:
+def browse_tracks(uri: str, stop_condition: StopCondition | None = None) -> list[ListItem]:
+    if stop_condition is None:
+        stop_condition = partial(stop_on_max_tracks, 5000)
+
     all_tracks: list[ListItem] = []
 
     while not stop_condition(all_tracks):
