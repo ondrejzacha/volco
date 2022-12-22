@@ -7,15 +7,14 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
-from volco import constants
-from volco.volumio_scraper import strip_name
-
+from .constants import ALL_PLAYLISTS, SOCKETIO_PORT, VOLUMIO_URL
 from .volumio_controller import TrackSpec, VolumioController
+from .volumio_scraper import strip_name
 
 app = FastAPI()
 
-# socketio = SocketIO("192.168.2.22", 3000)
-# vc = VolumioController(socketio)
+socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
+vc = VolumioController(socketio)
 
 # TODO: mount as route?
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -30,10 +29,10 @@ class AnyData(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 async def get_index(request: Request):
     # TODO: get from volumio on startup
-    
+
     playlist_urls = [
         {"name": playlist, "url": f"/static/playlists/{strip_name(playlist)}.html"}
-        for playlist in constants.ALL_PLAYLISTS
+        for playlist in ALL_PLAYLISTS
     ]
     return templates.TemplateResponse(
         "index.html", {"request": request, "playlists": playlist_urls}
@@ -60,14 +59,14 @@ async def pause():
     return vc.pause()
 
 
-@app.post("/playback/replace")
-async def play_track(uri: str = Form(), service: str = Form()):  # noqa: B008
-    return vc.play_track(track_spec=TrackSpec(uri=uri, service=service))
+# @app.post("/playback/replace")
+# async def play_track(uri: str = Form(), service: str = Form()):  # noqa: B008
+#     return vc.play_track(track_spec=TrackSpec(uri=uri, service=service))
 
 
-@app.post("/queue")
-async def queue_track(track_spec: TrackSpec):
-    return vc.queue_track(track_spec=track_spec)
+# @app.post("/queue")
+# async def queue_track(track_spec: TrackSpec):
+#     return vc.queue_track(track_spec=track_spec)
 
 
 # @app.post("/playlist/{playlist}/add")
@@ -96,15 +95,3 @@ async def remove_from_playlist(
 @app.get("/playlist/{playlist}")
 async def list_tracks(playlist: str):
     return vc.list_tracks(playlist=playlist).navigation.lists[0]["items"]
-
-
-# @app.post("/test2")
-# async def test(any_data: AnyData):
-#     print(any_data)
-#     return any_data
-
-# @app.post("/test")
-# async def test(request: Request):
-#     form = await request.form()
-#     print(form)
-#     return form

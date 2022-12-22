@@ -12,12 +12,12 @@ class ListItem(BaseModel):
     type: str
     title: str
     uri: str
-    album: str = None
-    artist: str = None
-    duration: int = None
-    albumart: str = None
-    year: str | int = None
-    icon: str = None
+    album: str | None = None
+    artist: str | None = None
+    duration: int | None = None
+    albumart: str | None = None
+    year: str | int | None = None
+    icon: str | None = None
 
     def __hash__(self):
         return hash(self.service + self.uri)
@@ -40,7 +40,7 @@ class ListItem(BaseModel):
 
 
 class ListContainer(BaseModel):
-    title: str = None
+    title: str | None = None
     availableListViews: list[str]
     items: list[ListItem]
 
@@ -53,14 +53,6 @@ class Navigation(BaseModel):
 
 class BrowseResponse(BaseModel):
     navigation: Navigation
-
-
-class TrackSpec(BaseModel):
-    service: str
-    uri: str
-
-    def __hash__(self):
-        return hash(self.service + self.uri)
 
 
 class VolumioResponse(BaseModel):

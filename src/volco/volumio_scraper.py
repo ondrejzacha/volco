@@ -1,29 +1,30 @@
 from collections import Counter
-from pathlib import Path
-from typing import Collection, Mapping, Sequence
+from typing import Collection, Sequence
 
 import jinja2
 import requests
 from socketIO_client import SocketIO
 
-from .constants import PLAYLIST_PATTERNS
-from .volumio_controller import TrackSpec, VolumioController
+from .constants import (
+    LATEST_50_NAME,
+    N_LATEST,
+    PLAYLIST_HTML_DIR,
+    PLAYLIST_PATTERNS,
+    PLAYLIST_TEMPLATE_HTML,
+    TEMPLATE_DIR,
+    VOLUMIO_URL,
+)
+from .volumio_controller import VolumioController
 from .volumio_models import BrowseResponse, ListItem
 
-VOLUMIO_URL = "http://192.168.2.22"  # TODO: get from env
-TEMPLATE_DIR = Path("/templates")
-PLAYLIST_HTML_DIR = Path("/static/playlists/")  # TODO: auto mkdir
-PLAYLIST_TEMPLATE_HTML = "list.html"
-LATEST_50_NAME = "- latest 50"
-N_LATEST = 50
 
-
-# def browse_tracks(uri: str, stop_condition: Callable[[Collection[ListItem]], bool]) -> list[ListItem]:
-def browse_tracks(uri: str, max_tracks: int = 1000) -> list[ListItem]:
-    all_tracks = []
+# def browse_tracks(uri: str, stop_condition: Callable[[Collection[ListItem]], bool]) 
+# -> list[ListItem]:
+def browse_tracks(uri: str, max_tracks: int = 1000) -> "list[ListItem]":
+    all_tracks: list[ListItem] = []
 
     while len(all_tracks) < max_tracks:
-        r = requests.get(f"{VOLUMIO_URL}/api/v1/browse?uri={uri}")
+        r = requests.get(f"http://{VOLUMIO_URL}/api/v1/browse?uri={uri}")
         browse_json = r.json()
         browse_response = BrowseResponse.parse_obj(browse_json)
 
@@ -72,7 +73,7 @@ def remove_playlist_duplicates(
         for _ in range(count - 1):
             print(f"Removing {track.title}")
             volumio_controller.remove_from_playlist(
-                playlist, TrackSpec(service=track.service, uri=track.uri)
+                playlist, service=track.service, uri=track.uri
             )
 
 
@@ -84,14 +85,14 @@ def update_new_additions_playlist(
 
     for track in new_tracks:
         volumio_controller.add_to_playlist(
-            LATEST_50_NAME, TrackSpec(service=track.service, uri=track.uri)
+            playlist=LATEST_50_NAME, service=track.service, uri=track.uri
         )
     extra = len(current_tracks) + len(new_tracks) - N_LATEST
 
     for idx in range(extra):
         track = current_tracks[idx]
         volumio_controller.remove_from_playlist(
-            LATEST_50_NAME, TrackSpec(service=track.service, uri=track.uri)
+            playlist=LATEST_50_NAME, service=track.service, uri=track.uri
         )
 
 
@@ -101,7 +102,7 @@ def main():
     print("Getting nts tracks")
     new_feed_tracks = browse_tracks("mixcloud/user@username=NTSRadio", max_tracks=5_000)
 
-    all_new_tracks = set()
+    all_new_tracks: set[ListItem] = set()
 
     for playlist, patterns in PLAYLIST_PATTERNS.items():
         print(f"Handling playlist `{playlist}`")
@@ -117,11 +118,10 @@ def main():
                 )
                 continue
 
-            track_spec = TrackSpec(service="mixcloud", uri=track.stripped_uri)
             print(f"Adding track `{track.title}` to playlist `{playlist}`.")
-            vc.add_to_playlist(playlist, track_spec=track_spec)
+            vc.add_to_playlist(playlist, service="mixcloud", uri=track.stripped_uri)
 
-            all_new_tracks.add(track_spec)
+            all_new_tracks.add(track)
 
     update_new_additions_playlist(all_new_tracks, volumio_controller=vc)
 

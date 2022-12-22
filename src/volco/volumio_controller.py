@@ -3,8 +3,7 @@ from typing import Any, Callable
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
-from .volumio_models import (BrowseResponse, ResultList, ToastMessage,
-                             TrackSpec, VolumioResponse)
+from .volumio_models import BrowseResponse, ResultList, ToastMessage, VolumioResponse
 
 
 class VolumioController:
@@ -24,7 +23,7 @@ class VolumioController:
     def _emit(self, *args):
         self.socketio.emit(*args)
 
-    def _get_response(self, message: str) -> tuple:
+    def _get_response(self, message: str) -> tuple | None:
         self.socketio.wait(0.5)
         response = self.responses.get(message)
         return response
@@ -45,7 +44,7 @@ class VolumioController:
             self._emit(message_out, data)
 
         if not message_in:
-            return
+            return None
 
         response = self._get_response(message_in)
         if response_model is not None:
@@ -60,31 +59,30 @@ class VolumioController:
             response_model=ResultList,
         )
 
-    # TODO: use service & uri directly
-    def add_to_playlist(self, playlist: str, track_spec: TrackSpec) -> ToastMessage:
+    def add_to_playlist(self, playlist: str, service: str, uri: str) -> ToastMessage:
         return self.call(
             message_out="addToPlaylist",
             message_in="pushToastMessage",
-            data={"name": playlist, **track_spec.dict()},
+            data={"name": playlist, "service": service, "uri": uri},
             response_model=ToastMessage,
         )
 
     def remove_from_playlist(
-        self, playlist: str, track_spec: TrackSpec
+        self, playlist: str, service: str, uri: str
     ) -> ToastMessage:
         return self.call(
             message_out="removeFromPlaylist",
             message_in="pushToastMessage",
-            data={"name": playlist, **track_spec.dict()},
+            data={"name": playlist, "service": service, "uri": uri},
             response_model=ToastMessage,
         )
 
-    # also volumio REST API
-    def play(self) -> None:
+    # TODO: use volumio REST API instead
+    def play(self):
         return self.call(message_out="play")
 
     # also volumio REST API
-    def pause(self) -> None:
+    def pause(self):
         return self.call(message_out="pause")
 
     # also volumio REST API
@@ -92,18 +90,18 @@ class VolumioController:
     def get_state(self):
         return self.call(message_out="getState", message_in="pushState")
 
-    # also volumio REST API
-    # TODO: figure out response?
-    def play_track(self, track_spec: TrackSpec) -> None:
-        return self.call(message_out="replaceAndPlay", data=track_spec.dict(),)
+    # # also volumio REST API
+    # # TODO: figure out response?
+    # def play_track(self, track_spec: TrackSpec) -> None:
+    #     return self.call(message_out="replaceAndPlay", data=track_spec.dict(),)
 
-    # also volumio REST API
-    def queue_track(self, track_spec: TrackSpec) -> ToastMessage:
-        return self.call(
-            message_out="addToQueue",
-            data=track_spec.dict(),
-            response_model=ToastMessage,
-        )
+    # # also volumio REST API
+    # def queue_track(self, track_spec: TrackSpec) -> ToastMessage:
+    #     return self.call(
+    #         message_out="addToQueue",
+    #         data=track_spec.dict(),
+    #         response_model=ToastMessage,
+    #     )
 
     # also volumio REST API
     # TODO: other lists
