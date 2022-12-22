@@ -7,22 +7,19 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
+from volco import constants
+from volco.volumio_scraper import strip_name
+
 from .volumio_controller import TrackSpec, VolumioController
 
 app = FastAPI()
 
-socketio = SocketIO("192.168.2.22", 3000)
-vc = VolumioController(socketio)
+# socketio = SocketIO("192.168.2.22", 3000)
+# vc = VolumioController(socketio)
 
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-# templates = Jinja2Templates(directory="templates")
-
-
-# @app.get("/", response_class=HTMLResponse)
-# async def read_item(request: Request, id: str):
-#     return templates.TemplateResponse("index.html", {"request": request, "id": id})
+# TODO: mount as route?
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 
 class AnyData(BaseModel):
@@ -30,12 +27,17 @@ class AnyData(BaseModel):
 
 
 # TODO
-# @app.get("/")
-# (volco list)
-# @app.get("/feeds/{}")  # static?
-# - get feed keywords
-# - post: add keywords
-# - create new feeds / new playlists?
+@app.get("/", response_class=HTMLResponse)
+async def get_index(request: Request):
+    # TODO: get from volumio on startup
+    
+    playlist_urls = [
+        {"name": playlist, "url": f"/static/playlists/{strip_name(playlist)}.html"}
+        for playlist in constants.ALL_PLAYLISTS
+    ]
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "playlists": playlist_urls}
+    )
 
 
 @app.get("/health")
@@ -59,7 +61,7 @@ async def pause():
 
 
 @app.post("/playback/replace")
-async def play_track(uri: str = Form(), service: str = Form()):
+async def play_track(uri: str = Form(), service: str = Form()):  # noqa: B008
     return vc.play_track(track_spec=TrackSpec(uri=uri, service=service))
 
 
@@ -74,14 +76,18 @@ async def queue_track(track_spec: TrackSpec):
 
 # (volumio list)
 @app.post("/playlist/{playlist}/add")
-async def add_to_playlist(playlist: str, uri: str = Form(), service: str = Form()):
+async def add_to_playlist(
+    playlist: str, uri: str = Form(), service: str = Form()  # noqa: B008
+):
     return vc.add_to_playlist(
         playlist=playlist, track_spec=TrackSpec(service=service, uri=uri)
     )
 
 
 @app.post("/playlist/{playlist}/remove")
-async def remove_from_playlist(playlist: str, uri: str = Form(), service: str = Form()):
+async def remove_from_playlist(
+    playlist: str, uri: str = Form(), service: str = Form()  # noqa: B008
+):
     return vc.remove_from_playlist(
         playlist=playlist, track_spec=TrackSpec(service=service, uri=uri)
     )

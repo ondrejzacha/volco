@@ -1,3 +1,26 @@
+ALL_PLAYLISTS = [
+        "- aaa",
+        "- ad93, tasker",
+        "- ambi",
+        "- dark dancey",
+        "- demanding",
+        "- fergus clark, optimo, lukid",
+        "- fun dancey",
+        "- john gomez, mr pedro, dj python, felix hall",
+        "- latest 50",
+        "- lupini",
+        "- maria, spirit blue",
+        "- nordi",
+        "- smart dancey",
+        "jazzy?",
+        "later",
+        "main",
+        "mixes for a curious mind",
+        "nts",
+        "undefined",
+        "upbeat",
+    ]
+
 PLAYLIST_PATTERNS = {
     "- maria, spirit blue": ["maria somerville", "spirit blue"],
     "- john gomez, mr pedro, dj python, felix hall": [

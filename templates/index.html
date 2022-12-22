@@ -1,0 +1,11 @@
+<h1>Volumio controller</h1>
+<ul>
+    {% for playlist in playlists %}
+    <li>
+        <a href="{{ playlist.url }}">{{ playlist.name }}</a>   
+    </li>
+    {% endfor %}
+
+    <!-- TODO: control buttons -->
+
+</ul>
