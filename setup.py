@@ -24,4 +24,7 @@ setup(
     extras_require={"dev": dev_packages},
     author="Ondrej Zacha",
     long_description_content_type="text/markdown",
+    entry_points={"console_scripts": [
+        "refresh = volco.volumio_scraper:main",
+    ]},
 )
