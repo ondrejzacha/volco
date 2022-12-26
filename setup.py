@@ -1,17 +1,16 @@
 from setuptools import setup, find_packages
 
-
+# TOOD: use poetry for this
 base_packages = [
     "fastapi",  # ==0.87.0
+    "httpx",
     "Jinja2",  # ==3.1.2
-    "pandas",  # ==1.5.2
     "pydantic",  # ==1.10.2
-    "requests",  # ==2.28.1
     "socketIO-client",  # ==0.7.2
     "uvicorn",  # ==0.20.0
 ]
 
-dev_packages = ["jupyterlab", "mypy", "flake8", "black"]
+dev_packages = ["jupyterlab", "mypy", "flake8", "black", ]
 
 
 setup(
@@ -27,4 +26,7 @@ setup(
     entry_points={"console_scripts": [
         "refresh = volco.scraper:main",
     ]},
+    package_data = {
+        'volco': ['py.typed'],
+    },
 )

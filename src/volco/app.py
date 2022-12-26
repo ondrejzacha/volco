@@ -1,5 +1,5 @@
 import httpx
-from fastapi import FastAPI, Form, Request
+from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -27,6 +27,14 @@ vc = VolumioController(socketio)
 playlist_urls: list[dict[str, str]] = []
 
 
+async def get_client():
+    # create a new client for each request
+    async with httpx.AsyncClient() as client:
+        # yield the client to the endpoint function
+        yield client
+        # close the client when the request is done
+
+
 @app.on_event("startup")
 async def startup_event():
     global playlist_urls
@@ -52,13 +60,17 @@ async def get_health():
 
 
 @app.post("/playback/replace")
-async def play_track(uri: str = Form(), service: str = Form()):  # noqa: B008
+async def play_track(
+    uri: str = Form(),  # noqa: B008
+    service: str = Form(),  # noqa: B008
+    client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
+) -> dict[str, str]:
     """Used to accept form data input."""
-    async with httpx.AsyncClient() as client:
-        return await client.post(
-            f"http://{VOLUMIO_URL}/api/v1/replaceAndPlay",
-            json={"item": {"uri": uri, "service": service}},
-        )
+    r = await client.post(
+        f"http://{VOLUMIO_URL}/api/v1/replaceAndPlay",
+        json={"item": {"uri": uri, "service": service}},
+    )
+    return r.json()
 
 
 # (volumio list)

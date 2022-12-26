@@ -3,8 +3,8 @@ from datetime import datetime
 from functools import partial
 from typing import Callable, Collection, Sequence
 
+import httpx
 import jinja2
-import requests
 from socketIO_client import SocketIO
 
 from .constants import (
@@ -47,7 +47,7 @@ def browse_tracks(
     all_tracks: list[ListItem] = []
 
     while not stop_condition(all_tracks):
-        r = requests.get(f"http://{VOLUMIO_URL}/api/v1/browse?uri={uri}")
+        r = httpx.get(f"http://{VOLUMIO_URL}/api/v1/browse?uri={uri}")
         browse_json = r.json()
         browse_response = BrowseResponse.parse_obj(browse_json)
 
@@ -136,6 +136,7 @@ def generate_html_files(
                 "playlist_name": playlist,
                 "tracks": tracks.navigation.lists[-1].items[::-1],
                 "ts": datetime.now(),
+                "volumio_url": VOLUMIO_URL,
             }
         )
         stripped = strip_name(playlist)
@@ -182,6 +183,6 @@ def main():
 
             all_new_tracks.add(track)
 
-    update_new_additions_playlist(all_new_tracks, controller=vc)
+    # update_new_additions_playlist(all_new_tracks, controller=vc)
 
     generate_html_files(vc=vc)
