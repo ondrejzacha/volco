@@ -1,7 +1,7 @@
 from collections import Counter
 from datetime import datetime
 from functools import partial
-from typing import Callable, Collection, Sequence
+from typing import Callable, Collection, List, Optional, Sequence
 
 import httpx
 import jinja2
@@ -39,8 +39,8 @@ def stop_on_overlap(
 
 
 def browse_tracks(
-    uri: str, stop_condition: StopCondition | None = None
-) -> list[ListItem]:
+    uri: str, stop_condition: Optional[StopCondition] = None
+) -> List[ListItem]:
     if stop_condition is None:
         stop_condition = partial(stop_on_max_tracks, max_tracks=5000)
 
@@ -78,7 +78,7 @@ def browse_tracks(
 
 def filter_tracks(
     tracks: Sequence[ListItem], patterns: Collection[str]
-) -> list[ListItem]:
+) -> List[ListItem]:
     return [
         track
         for track in tracks

@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import httpx
 from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
@@ -24,7 +26,7 @@ templates = Jinja2Templates(directory="templates")
 socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
 vc = VolumioController(socketio)
 
-playlist_urls: list[dict[str, str]] = []
+playlist_urls: List[Dict[str, str]] = []
 
 
 async def get_client():
@@ -64,7 +66,7 @@ async def play_track(
     uri: str = Form(),  # noqa: B008
     service: str = Form(),  # noqa: B008
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> dict[str, str]:
+) -> Dict[str, str]:
     """Used to accept form data input."""
     r = await client.post(
         f"http://{VOLUMIO_URL}/api/v1/replaceAndPlay",

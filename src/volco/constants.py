@@ -41,7 +41,11 @@ PLAYLIST_PATTERNS = {
         "dj python",
         "mr pedro",
     ],
-    "- fergus clark, optimo, lukid": ["fergus clark", "optimo", "lukid",],
+    "- fergus clark, optimo, lukid": [
+        "fergus clark",
+        "optimo",
+        "lukid",
+    ],
     "- willikens/ivkovic": ["ivkovic", "willikens"],
     "- ad93, tasker": ["ad 93", "ad93", "tasker"],
     "- lupini": ["lupini"],
@@ -52,7 +56,13 @@ PLAYLIST_PATTERNS = {
         "sapphire slows",
         "nabihah iqbal",
     ],
-    "- smart dancey": ["batu", "dj nobu", "four tet", "ben ufo", "upsammy",],
+    "- smart dancey": [
+        "batu",
+        "dj nobu",
+        "four tet",
+        "ben ufo",
+        "upsammy",
+    ],
     "- fun dancey": [
         "call super",
         "young marco",
@@ -71,6 +81,17 @@ PLAYLIST_PATTERNS = {
         "orpheu the wizard",
         "martha",
     ],
-    "- ambi": ["malibu", "carla dal forno", "sofie birch", "yu su", "astrid sonne",],
-    "- nordi": ["posh isolation", "oqbqbo", "scandinavian star", "croatian amor",],
+    "- ambi": [
+        "malibu",
+        "carla dal forno",
+        "sofie birch",
+        "yu su",
+        "astrid sonne",
+    ],
+    "- nordi": [
+        "posh isolation",
+        "oqbqbo",
+        "scandinavian star",
+        "croatian amor",
+    ],
 }

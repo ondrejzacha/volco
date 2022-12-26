@@ -1,4 +1,5 @@
 import re
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -12,12 +13,12 @@ class ListItem(BaseModel):
     type: str
     title: str
     uri: str
-    album: str | None = None
-    artist: str | None = None
-    duration: int | None = None
-    albumart: str | None = None
-    year: str | int | None = None
-    icon: str | None = None
+    album: Optional[str] = None
+    artist: Optional[str] = None
+    duration: Optional[int] = None
+    albumart: Optional[str] = None
+    year: Union[str, int, None] = None
+    icon: Optional[str] = None
 
     def __hash__(self):
         return hash(self.service + self.uri)
@@ -40,14 +41,14 @@ class ListItem(BaseModel):
 
 
 class ListContainer(BaseModel):
-    title: str | None = None
-    availableListViews: list[str]
-    items: list[ListItem]
+    title: Optional[str] = None
+    availableListViews: List[str]
+    items: List[ListItem]
 
 
 class Navigation(BaseModel):
     prev: UriItem
-    lists: list[ListContainer]
+    lists: List[ListContainer]
     info: ListItem
 
 
@@ -57,11 +58,11 @@ class BrowseResponse(BaseModel):
 
 class VolumioResponse(BaseModel):
     success: bool
-    reason: str | None
+    reason: Optional[str]
 
 
 class ResultList(BaseModel):
-    __root__: list[str]
+    __root__: List[str]
 
 
 class ToastMessage(BaseModel):

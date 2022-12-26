@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "volco"
+version = "0.1.0"
+description = ""
+authors = ["Ondrej Zacha <zachaondrej@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+httpx = "^0.23.1"
+fastapi = "^0.88.0"
+uvicorn = "^0.20.0"
+socketIO-client = "^0.7.2"
+pydantic = "^1.10.2"
+python-multipart = "^0.0.5"
+
+[tool.poetry.dev-dependencies]
+black = "^22.12.0"
+mypy = "^0.991"
+flake8 = "^5.0"
+jupyterlab = "^3.5.2"
+isort = "^5.11.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+refresh = "volco.scraper:main"

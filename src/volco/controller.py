@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable, Optional, Union
 
 from pydantic import BaseModel
 from socketIO_client import SocketIO
@@ -23,7 +23,7 @@ class VolumioController:
     def _emit(self, *args):
         self.socketio.emit(*args)
 
-    def _get_response(self, message: str) -> tuple | None:
+    def _get_response(self, message: str) -> Optional[tuple]:
         self.socketio.wait(0.5)
         response = self.responses.get(message)
         return response
@@ -34,7 +34,7 @@ class VolumioController:
         message_in: str = None,
         data: Any = None,
         response_model: BaseModel = None,
-    ) -> BaseModel | tuple | None:
+    ) -> Union[BaseModel, tuple, None]:
         if message_in:
             self._listen_for(message_in)
 
