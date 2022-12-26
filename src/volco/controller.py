@@ -91,11 +91,6 @@ class VolumioController:
         return self.call(message_out="getState", message_in="pushState")
 
     # # also volumio REST API
-    # # TODO: figure out response?
-    # def play_track(self, track_spec: TrackSpec) -> None:
-    #     return self.call(message_out="replaceAndPlay", data=track_spec.dict(),)
-
-    # # also volumio REST API
     # def queue_track(self, track_spec: TrackSpec) -> ToastMessage:
     #     return self.call(
     #         message_out="addToQueue",

@@ -3,7 +3,6 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 from socketIO_client import SocketIO
 from starlette.routing import Mount
 
@@ -12,7 +11,13 @@ from .controller import VolumioController
 from .scraper import strip_name
 
 app = FastAPI(
-    routes=[Mount("/static", app=StaticFiles(directory="static"), name="static")]
+    routes=[
+        Mount(
+            "/playlists",
+            app=StaticFiles(directory="static/playlists"),
+            name="playlists",
+        )
+    ]
 )
 
 templates = Jinja2Templates(directory="templates")
@@ -28,7 +33,7 @@ async def startup_event():
     # TODO: get from volumio on startup
     playlist_urls.clear()
     playlist_urls += [
-        {"name": playlist, "url": f"/static/playlists/{strip_name(playlist)}.html"}
+        {"name": playlist, "url": f"/playlists/{strip_name(playlist)}.html"}
         for playlist in ALL_PLAYLISTS
     ]
 

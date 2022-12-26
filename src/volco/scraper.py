@@ -1,4 +1,5 @@
 from collections import Counter
+from datetime import datetime
 from functools import partial
 from typing import Callable, Collection, Sequence
 
@@ -134,6 +135,7 @@ def generate_html_files(
             {
                 "playlist_name": playlist,
                 "tracks": tracks.navigation.lists[-1].items[::-1],
+                "ts": datetime.now(),
             }
         )
         stripped = strip_name(playlist)
