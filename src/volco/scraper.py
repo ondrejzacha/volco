@@ -8,6 +8,7 @@ import jinja2
 from socketIO_client import SocketIO
 
 from .constants import (
+    API_PORT,
     LATEST_50_NAME,
     N_LATEST,
     PLAYLIST_HTML_DIR,
@@ -47,7 +48,7 @@ def browse_tracks(
     all_tracks: list[ListItem] = []
 
     while not stop_condition(all_tracks):
-        r = httpx.get(f"http://{VOLUMIO_URL}/api/v1/browse?uri={uri}")
+        r = httpx.get(f"http://{VOLUMIO_URL}{API_PORT}/api/v1/browse?uri={uri}")
         browse_json = r.json()
         browse_response = BrowseResponse.parse_obj(browse_json)
 
@@ -136,7 +137,6 @@ def generate_html_files(
                 "playlist_name": playlist,
                 "tracks": tracks.navigation.lists[-1].items[::-1],
                 "ts": datetime.now(),
-                "volumio_url": VOLUMIO_URL,
             }
         )
         stripped = strip_name(playlist)

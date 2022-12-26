@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from socketIO_client import SocketIO
 from starlette.routing import Mount
 
-from .constants import ALL_PLAYLISTS, SOCKETIO_PORT, VOLUMIO_URL
+from .constants import ALL_PLAYLISTS, API_PORT, SOCKETIO_PORT, VOLUMIO_URL
 from .controller import VolumioController
 from .scraper import strip_name
 
@@ -52,7 +52,12 @@ async def startup_event():
 async def get_index(request: Request):
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "playlists": playlist_urls, "volumio_url": VOLUMIO_URL},
+        {
+            "request": request,
+            "playlists": playlist_urls,
+            "volumio_url": VOLUMIO_URL,
+            "api_port": API_PORT,
+        },
     )
 
 
@@ -69,7 +74,7 @@ async def play_track(
 ) -> Dict[str, str]:
     """Used to accept form data input."""
     r = await client.post(
-        f"http://{VOLUMIO_URL}/api/v1/replaceAndPlay",
+        f"http://{VOLUMIO_URL}{API_PORT}/api/v1/replaceAndPlay",
         json={"item": {"uri": uri, "service": service}},
     )
     return r.json()
