@@ -8,4 +8,15 @@
 
     <!-- TODO: control buttons -->
 
+    <iframe name="responseframe" id="responseframe"></iframe>
+    <form action="http://{{ volumio_url }}/api/v1/commands" method="GET" target="responseframe">
+        <input type="hidden" name="cmd" value="pause" /> 
+        <input type="submit" value="Pause" />
+    </form>
+
+    <form action="http://{{ volumio_url }}/api/v1/commands" method="GET" target="responseframe">
+        <input type="hidden" name="cmd" value="play" /> 
+        <input type="submit" value="Play" />
+    </form>
+
 </ul>

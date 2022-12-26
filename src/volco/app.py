@@ -41,7 +41,8 @@ async def startup_event():
 @app.get("/", response_class=HTMLResponse)
 async def get_index(request: Request):
     return templates.TemplateResponse(
-        "index.html", {"request": request, "playlists": playlist_urls}
+        "index.html",
+        {"request": request, "playlists": playlist_urls, "volumio_url": VOLUMIO_URL},
     )
 
 
@@ -50,34 +51,14 @@ async def get_health():
     return "OK"
 
 
-@app.get("/state")
-async def get_state():
-    return vc.get_state()[0]
-
-
-@app.post("/playback/start")
-async def play():
-    return vc.play()
-
-
-@app.post("/playback/pause")
-async def pause():
-    return vc.pause()
-
-
 @app.post("/playback/replace")
 async def play_track(uri: str = Form(), service: str = Form()):  # noqa: B008
     """Used to accept form data input."""
     async with httpx.AsyncClient() as client:
-        r = await client.post(
+        return await client.post(
             f"http://{VOLUMIO_URL}/api/v1/replaceAndPlay",
             json={"item": {"uri": uri, "service": service}},
         )
-
-
-# @app.post("/queue")
-# async def queue_track(track_spec: TrackSpec):
-#     return vc.queue_track(track_spec=track_spec)
 
 
 # (volumio list)
