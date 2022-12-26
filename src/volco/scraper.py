@@ -31,13 +31,17 @@ def stop_on_overlap(
     existing_tracks: Collection[ListItem],
     min_overlap: int = 1,
 ) -> bool:
-    overlap = set(tracks).intersection(existing_tracks)
+    track_uris = set(t.stripped_uri for t in tracks)
+    existing_track_uris = set(t.stripped_uri for t in existing_tracks)
+    overlap = set(track_uris).intersection(existing_track_uris)
     return len(overlap) >= min_overlap
 
 
-def browse_tracks(uri: str, stop_condition: StopCondition | None = None) -> list[ListItem]:
+def browse_tracks(
+    uri: str, stop_condition: StopCondition | None = None
+) -> list[ListItem]:
     if stop_condition is None:
-        stop_condition = partial(stop_on_max_tracks, 5000)
+        stop_condition = partial(stop_on_max_tracks, max_tracks=5000)
 
     all_tracks: list[ListItem] = []
 
@@ -117,7 +121,7 @@ def generate_html_files(
 ) -> None:
     if playlists is None:
         # TODO: better response
-        playlists = vc.list_playlists()[0]
+        playlists = vc.list_playlists().__root__
 
     loader = jinja2.FileSystemLoader(TEMPLATE_DIR)
     environment = jinja2.Environment(loader=loader)
@@ -126,7 +130,12 @@ def generate_html_files(
     for playlist in playlists:
         tracks = vc.list_tracks(playlist)
         # TODO: smarter tracks[::-1]
-        rendered = template.render({"playlist_name": playlist, "tracks": tracks[::-1]})
+        rendered = template.render(
+            {
+                "playlist_name": playlist,
+                "tracks": tracks.navigation.lists[-1].items[::-1],
+            }
+        )
         stripped = strip_name(playlist)
         output_path = PLAYLIST_HTML_DIR / f"{stripped}.html"
         output_path.write_text(rendered)
@@ -140,7 +149,7 @@ def main():
     socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
     vc = VolumioController(socketio)
 
-    existing_tracks = vc.list_tracks(LATEST_50_NAME)
+    existing_tracks = browse_tracks(f"playlists/{LATEST_50_NAME}")
     stop_condition = partial(
         stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
     )
