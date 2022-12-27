@@ -183,6 +183,10 @@ def main():
 
             all_new_tracks.add(track)
 
-    # update_new_additions_playlist(all_new_tracks, controller=vc)
+    update_new_additions_playlist(all_new_tracks, controller=vc)
 
     generate_html_files(vc=vc)
+
+
+if __name__ == "__main__":
+    main()

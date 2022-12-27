@@ -1,9 +1,10 @@
 from pathlib import Path
 
 # VOLUMIO_URL = "192.168.2.22"
-VOLUMIO_URL = "192.168.100.227"
-API_PORT = ""
+VOLUMIO_URL = "localhost"
 SOCKETIO_PORT = 3000
+VOLUMIO_API_URL = f"{VOLUMIO_URL}:3000"
+
 TEMPLATE_DIR = Path("templates")
 PLAYLIST_HTML_DIR = Path("static/playlists/")  # TODO: auto mkdir
 PLAYLIST_TEMPLATE_HTML = "list.html"

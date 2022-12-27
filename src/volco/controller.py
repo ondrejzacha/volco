@@ -48,7 +48,6 @@ class VolumioController:
 
         response = self._get_response(message_in)
         if response_model is not None:
-            print(response)
             return response_model.parse_obj(response[0])
         return response
 

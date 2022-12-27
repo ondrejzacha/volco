@@ -8,9 +8,10 @@ from fastapi.templating import Jinja2Templates
 from socketIO_client import SocketIO
 from starlette.routing import Mount
 
-from .constants import ALL_PLAYLISTS, API_PORT, SOCKETIO_PORT, VOLUMIO_URL
+from .constants import ALL_PLAYLISTS, VOLUMIO_API_URL
 from .controller import VolumioController
 from .scraper import strip_name
+
 
 app = FastAPI(
     routes=[
@@ -21,11 +22,7 @@ app = FastAPI(
         )
     ]
 )
-
 templates = Jinja2Templates(directory="templates")
-socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
-vc = VolumioController(socketio)
-
 playlist_urls: List[Dict[str, str]] = []
 
 
@@ -50,13 +47,12 @@ async def startup_event():
 
 @app.get("/", response_class=HTMLResponse)
 async def get_index(request: Request):
+    # Index needs "public" URL as it needs to call API from client side
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "playlists": playlist_urls,
-            "volumio_url": VOLUMIO_URL,
-            "api_port": API_PORT,
         },
     )
 
@@ -73,29 +69,43 @@ async def play_track(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> Dict[str, str]:
     """Used to accept form data input."""
+    # This needs localhost as the call is made on server side
     r = await client.post(
-        f"http://{VOLUMIO_URL}{API_PORT}/api/v1/replaceAndPlay",
+        f"http://{VOLUMIO_API_URL}/api/v1/replaceAndPlay",
         json={"item": {"uri": uri, "service": service}},
     )
     return r.json()
 
 
-# (volumio list)
-@app.post("/playlist/{playlist}/add")
-async def add_to_playlist(
-    playlist: str, uri: str = Form(), service: str = Form()  # noqa: B008
-):
-    return vc.add_to_playlist(playlist=playlist, service=service, uri=uri)
+# play, post, status redirected to stay on the same port (volumio API runs on port 3000)
+@app.post("/playback/play")
+async def play(
+    client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
+) -> Dict[str, str]:
+    # This needs localhost as the call is made on server side
+    r = await client.get(
+        f"http://{VOLUMIO_API_URL}/api/v1/commands/?cmd=play",
+    )
+    return r.json()
 
 
-@app.post("/playlist/{playlist}/remove")
-async def remove_from_playlist(
-    playlist: str, uri: str = Form(), service: str = Form()  # noqa: B008
-):
-    return vc.remove_from_playlist(playlist=playlist, service=service, uri=uri)
+@app.post("/playback/pause")
+async def pause(
+    client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
+) -> Dict[str, str]:
+    # This needs localhost as the call is made on server side
+    r = await client.get(
+        f"http://{VOLUMIO_API_URL}/api/v1/commands/?cmd=pause",
+    )
+    return r.json()
 
 
-@app.get("/playlist/{playlist}")
-async def list_tracks(playlist: str):
-    # TODO: smarter parsing
-    return vc.list_tracks(playlist=playlist).navigation.lists[0]["items"]
+@app.get("/playback/status")
+async def get_status(
+    client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
+) -> Dict[str, str]:
+    # This needs localhost as the call is made on server side
+    r = await client.get(
+        f"http://{VOLUMIO_API_URL}/api/v1/getState",
+    )
+    return r.json()
