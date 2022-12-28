@@ -8,7 +8,6 @@ import jinja2
 from socketIO_client import SocketIO
 
 from .constants import (
-    API_PORT,
     LATEST_50_NAME,
     N_LATEST,
     PLAYLIST_HTML_DIR,
@@ -16,6 +15,7 @@ from .constants import (
     PLAYLIST_TEMPLATE_HTML,
     SOCKETIO_PORT,
     TEMPLATE_DIR,
+    VOLUMIO_API_URL,
     VOLUMIO_URL,
 )
 from .controller import VolumioController
@@ -48,7 +48,7 @@ def browse_tracks(
     all_tracks: list[ListItem] = []
 
     while not stop_condition(all_tracks):
-        r = httpx.get(f"http://{VOLUMIO_URL}{API_PORT}/api/v1/browse?uri={uri}")
+        r = httpx.get(f"http://{VOLUMIO_API_URL}/api/v1/browse?uri={uri}")
         browse_json = r.json()
         browse_response = BrowseResponse.parse_obj(browse_json)
 
@@ -157,6 +157,7 @@ def main():
         stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
     )
 
+    # TODO: get from config
     print("Getting nts tracks")
     new_feed_tracks = browse_tracks(
         "mixcloud/user@username=NTSRadio", stop_condition=stop_condition
