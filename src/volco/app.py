@@ -19,6 +19,11 @@ app = FastAPI(
             "/playlists",
             app=StaticFiles(directory="static/playlists"),
             name="playlists",
+        ),
+        Mount(
+            "/logs",
+            app=StaticFiles(directory="logs"),
+            name="logs",
         )
     ]
 )

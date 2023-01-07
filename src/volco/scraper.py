@@ -8,7 +8,6 @@ import jinja2
 from socketIO_client import SocketIO
 
 from .constants import (
-    API_PORT,
     LATEST_50_NAME,
     N_LATEST,
     PLAYLIST_HTML_DIR,
@@ -17,6 +16,7 @@ from .constants import (
     SOCKETIO_PORT,
     TEMPLATE_DIR,
     VOLUMIO_URL,
+    VOLUMIO_API_URL,
 )
 from .controller import VolumioController
 from .models import BrowseResponse, ListItem
@@ -48,7 +48,7 @@ def browse_tracks(
     all_tracks: list[ListItem] = []
 
     while not stop_condition(all_tracks):
-        r = httpx.get(f"http://{VOLUMIO_URL}{API_PORT}/api/v1/browse?uri={uri}")
+        r = httpx.get(f"http://{VOLUMIO_API_URL}/api/v1/browse?uri={uri}")
         browse_json = r.json()
         browse_response = BrowseResponse.parse_obj(browse_json)
 
