@@ -24,7 +24,7 @@ app = FastAPI(
             "/logs",
             app=StaticFiles(directory="logs"),
             name="logs",
-        )
+        ),
     ]
 )
 templates = Jinja2Templates(directory="templates")

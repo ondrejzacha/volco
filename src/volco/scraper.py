@@ -2,6 +2,7 @@ from collections import Counter
 from datetime import datetime
 from functools import partial
 from typing import Callable, Collection, List, Optional, Sequence
+import logging
 
 import httpx
 import jinja2
@@ -20,6 +21,8 @@ from .constants import (
 )
 from .controller import VolumioController
 from .models import BrowseResponse, ListItem
+
+logger = logging.getLogger(__name__)
 
 StopCondition = Callable[[Collection[ListItem]], bool]
 
@@ -68,10 +71,10 @@ def browse_tracks(
             None,
         )
         if next_page is None:
-            print("No more pages")
+            logger.debug("No more pages")
             break
 
-        print(".", end="")
+        logger.debug(".", end="")
         uri = next_page.uri
 
     return all_tracks
@@ -93,7 +96,7 @@ def remove_playlist_duplicates(playlist: str, controller: VolumioController) -> 
     track_counter = Counter(playlist_tracks)
     for track, count in track_counter.items():
         for _ in range(count - 1):
-            print(f"Removing {track.title}")
+            logger.info(f"Removing {track.title} from playlist {playlist}.")
             controller.remove_from_playlist(
                 playlist, service=track.service, uri=track.uri
             )
@@ -105,12 +108,15 @@ def update_new_additions_playlist(
     new_tracks = list(tracks)[:N_LATEST]
     current_tracks = browse_tracks(f"playlists/{LATEST_50_NAME}")
 
+    # Add new tracks
     for track in new_tracks:
+        logger.info(f"Adding track {track.title} to playlist {LATEST_50_NAME}")
         controller.add_to_playlist(
             playlist=LATEST_50_NAME, service=track.service, uri=track.uri
         )
-    extra = len(current_tracks) + len(new_tracks) - N_LATEST
 
+    # Remove oldest tracks to reach N_LATEST
+    extra = len(current_tracks) + len(new_tracks) - N_LATEST
     for idx in range(extra):
         track = current_tracks[idx]
         controller.remove_from_playlist(
@@ -149,6 +155,8 @@ def strip_name(name: str) -> str:
 
 
 def main():
+    logging.basicConfig(level="INFO")
+
     socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
     vc = VolumioController(socketio)
 
@@ -157,7 +165,7 @@ def main():
         stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
     )
 
-    print("Getting nts tracks")
+    logger.info("Getting nts tracks")
     new_feed_tracks = browse_tracks(
         "mixcloud/user@username=NTSRadio", stop_condition=stop_condition
     )
@@ -165,20 +173,20 @@ def main():
     all_new_tracks: set[ListItem] = set()
 
     for playlist, patterns in PLAYLIST_PATTERNS.items():
-        print(f"Handling playlist `{playlist}`")
+        logger.debug(f"Handling playlist `{playlist}`")
         current_tracks = browse_tracks(f"playlists/{playlist}")
         current_uris = set(track.stripped_uri for track in current_tracks)
         matching_tracks = filter_tracks(new_feed_tracks, patterns)
 
         for track in matching_tracks:
             if track.stripped_uri in current_uris:
-                print(
+                logger.debug(
                     f"Skipping track `{track.title}` as "
                     f"it already is in playlist `{playlist}`."
                 )
                 continue
 
-            print(f"Adding track `{track.title}` to playlist `{playlist}`.")
+            logger.info(f"Adding track `{track.title}` to playlist `{playlist}`.")
             vc.add_to_playlist(playlist, service="mixcloud", uri=track.stripped_uri)
 
             all_new_tracks.add(track)
