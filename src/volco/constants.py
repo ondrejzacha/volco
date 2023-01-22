@@ -11,6 +11,8 @@ PLAYLIST_TEMPLATE_HTML = "list.html"
 LATEST_50_NAME = "- latest 50"
 N_LATEST = 50
 
+REFRESH_LOG_PATH = Path("logs/refresh.log")
+
 
 ALL_PLAYLISTS = [
     "- ad93, tasker",

@@ -3,7 +3,7 @@
 <ul>
     {% for track in tracks %}
     <li>
-        <div>{{ track.title }}
+        <div>{{ track.title }} ({{ track.progress }})
             <form action="/playback/replace" method="POST" enctype="multipart/form-data"
                 target="responseframe" style="display: inline;">
                 <input type="hidden" id="service" name="service" value="{{ track.service }}">
