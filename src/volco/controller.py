@@ -1,9 +1,9 @@
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 from pydantic import BaseModel
 from socketIO_client import SocketIO
 
-from .models import BrowseResponse, ResultList, ToastMessage, VolumioResponse
+from .models import BrowseResponse, ListItem, ResultList, ToastMessage, VolumioResponse
 
 
 class VolumioController:
@@ -51,12 +51,14 @@ class VolumioController:
             return response_model.parse_obj(response[0])
         return response
 
-    def list_playlists(self) -> ResultList:
-        return self.call(
+    def list_playlists(self) -> List[str]:
+        result_obj: ResultList = self.call(
             message_out="listPlaylist",
             message_in="pushListPlaylist",
             response_model=ResultList,
         )
+        playlists = result_obj.__root__
+        return playlists
 
     def add_to_playlist(self, playlist: str, service: str, uri: str) -> ToastMessage:
         return self.call(
@@ -99,13 +101,15 @@ class VolumioController:
 
     # also volumio REST API
     # TODO: other lists
-    def list_tracks(self, playlist: str) -> BrowseResponse:
-        return self.call(
+    def list_tracks(self, playlist: str) -> List[ListItem]:
+        result_obj: BrowseResponse = self.call(
             message_out="browseLibrary",
             message_in="pushBrowseLibrary",
             data={"uri": f"playlists/{playlist}"},
             response_model=BrowseResponse,
         )
+        tracks = result_obj.navigation.lists[-1].items
+        return tracks
 
     # Playlists are also created by adding a track to a non-existent playlist
     def create_playlist(self, name: str):

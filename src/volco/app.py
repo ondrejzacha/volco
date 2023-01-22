@@ -5,13 +5,10 @@ from fastapi import Depends, FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from socketIO_client import SocketIO
 from starlette.routing import Mount
 
 from .constants import ALL_PLAYLISTS, VOLUMIO_API_URL
-from .controller import VolumioController
 from .scraper import strip_name
-
 
 app = FastAPI(
     routes=[
@@ -44,6 +41,7 @@ async def startup_event():
     global playlist_urls
     # TODO: get from volumio on startup
     playlist_urls.clear()
+    # TODO: smarter
     playlist_urls += [
         {"name": playlist, "url": f"/playlists/{strip_name(playlist)}.html"}
         for playlist in ALL_PLAYLISTS

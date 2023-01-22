@@ -1,12 +1,14 @@
 from collections import Counter
-from datetime import datetime
 from functools import partial
 from typing import Callable, Collection, List, Optional, Sequence
 import logging
+from typing import Callable, Collection, List, Mapping, Optional, Sequence
 
 import httpx
 import jinja2
 from socketIO_client import SocketIO
+
+from volco.renderer import extract_progress, render_playlist_page
 
 from .constants import (
     LATEST_50_NAME,
@@ -14,8 +16,10 @@ from .constants import (
     PLAYLIST_HTML_DIR,
     PLAYLIST_PATTERNS,
     PLAYLIST_TEMPLATE_HTML,
+    REFRESH_LOG_PATH,
     SOCKETIO_PORT,
     TEMPLATE_DIR,
+    VOLUMIO_API_URL,
     VOLUMIO_URL,
     VOLUMIO_API_URL,
 )
@@ -103,7 +107,7 @@ def remove_playlist_duplicates(playlist: str, controller: VolumioController) -> 
 
 
 def update_new_additions_playlist(
-    tracks: Collection[ListItem], controller: VolumioController
+    tracks: Collection[ListItem], vc: VolumioController
 ) -> None:
     new_tracks = list(tracks)[:N_LATEST]
     current_tracks = browse_tracks(f"playlists/{LATEST_50_NAME}")
@@ -111,7 +115,7 @@ def update_new_additions_playlist(
     # Add new tracks
     for track in new_tracks:
         logger.info(f"Adding track {track.title} to playlist {LATEST_50_NAME}")
-        controller.add_to_playlist(
+        vc.add_to_playlist(
             playlist=LATEST_50_NAME, service=track.service, uri=track.uri
         )
 
@@ -119,17 +123,20 @@ def update_new_additions_playlist(
     extra = len(current_tracks) + len(new_tracks) - N_LATEST
     for idx in range(extra):
         track = current_tracks[idx]
-        controller.remove_from_playlist(
+        vc.remove_from_playlist(
             playlist=LATEST_50_NAME, service=track.service, uri=track.uri
         )
 
 
 def generate_html_files(
-    vc: VolumioController, playlists: Collection[str] = None
+    vc: VolumioController,
+    playlists: Collection[str] = None,
+    track_progress: Optional[Mapping[str, int]] = None,
 ) -> None:
     if playlists is None:
-        # TODO: better response
-        playlists = vc.list_playlists().__root__
+        playlists = vc.list_playlists()
+    if track_progress is None:
+        track_progress = {}
 
     loader = jinja2.FileSystemLoader(TEMPLATE_DIR)
     environment = jinja2.Environment(loader=loader)
@@ -137,14 +144,14 @@ def generate_html_files(
 
     for playlist in playlists:
         tracks = vc.list_tracks(playlist)
-        # TODO: smarter tracks[::-1]
-        rendered = template.render(
-            {
-                "playlist_name": playlist,
-                "tracks": tracks.navigation.lists[-1].items[::-1],
-                "ts": datetime.now(),
-            }
+
+        rendered = render_playlist_page(
+            title=playlist,
+            tracks=tracks,
+            track_progress=track_progress,
+            template=template,
         )
+
         stripped = strip_name(playlist)
         output_path = PLAYLIST_HTML_DIR / f"{stripped}.html"
         output_path.write_text(rendered)
@@ -154,12 +161,8 @@ def strip_name(name: str) -> str:
     return name.replace(" ", "_").replace(",", "_")
 
 
-def main():
-    logging.basicConfig(level="INFO")
-
-    socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
-    vc = VolumioController(socketio)
-
+def find_candidate_tracks() -> List[ListItem]:
+    # TODO: this uses REST API
     existing_tracks = browse_tracks(f"playlists/{LATEST_50_NAME}")
     stop_condition = partial(
         stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
@@ -167,13 +170,25 @@ def main():
 
     logger.info("Getting nts tracks")
     new_feed_tracks = browse_tracks(
+
+    # TODO: get from config
+    print("Getting nts tracks")
+    candidate_tracks = browse_tracks(
         "mixcloud/user@username=NTSRadio", stop_condition=stop_condition
     )
 
+    return candidate_tracks
+
+
+def update_playlists(
+    new_feed_tracks: Collection[ListItem],
+    playlist_patterns: Mapping[str, Collection[str]],
+    vc: VolumioController,
+) -> None:
     all_new_tracks: set[ListItem] = set()
 
-    for playlist, patterns in PLAYLIST_PATTERNS.items():
-        logger.debug(f"Handling playlist `{playlist}`")
+    for playlist, patterns in playlist_patterns.items():
+        print(f"Handling playlist `{playlist}`")
         current_tracks = browse_tracks(f"playlists/{playlist}")
         current_uris = set(track.stripped_uri for track in current_tracks)
         matching_tracks = filter_tracks(new_feed_tracks, patterns)
@@ -191,9 +206,21 @@ def main():
 
             all_new_tracks.add(track)
 
-    update_new_additions_playlist(all_new_tracks, controller=vc)
+    update_new_additions_playlist(all_new_tracks, vc=vc)
 
-    generate_html_files(vc=vc)
+
+def main():
+    socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
+    vc = VolumioController(socketio)
+
+    new_feed_tracks = find_candidate_tracks()
+    update_playlists(new_feed_tracks, playlist_patterns=PLAYLIST_PATTERNS, vc=vc)
+
+    logs = REFRESH_LOG_PATH.read_text().splitlines()
+    track_progress = extract_progress(logs)
+
+    print(track_progress)
+    generate_html_files(vc=vc, track_progress=track_progress)
 
 
 if __name__ == "__main__":

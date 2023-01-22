@@ -1,5 +1,6 @@
 import re
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
+import datetime
 
 from pydantic import BaseModel
 
@@ -25,19 +26,24 @@ class ListItem(BaseModel):
 
     @property
     def stripped_uri(self):
-        if self.uri is None:
-            return None
-        if self.uri.startswith("mixcloud"):
-            return re.sub(
-                r"^(mixcloud/)(.+)?(cloudcast@cloudcastId=[^@]+)(@.+)?$",
-                r"\1\3",
-                self.uri,
-            )
-        if self.uri.startswith("soundcloud"):
-            return re.sub(
-                r"^(soundcloud/)(.+)?(track@trackId=[^@]+)(@.+)?$", r"\1\3", self.uri
-            )
-        return self.uri
+        return strip_uri(self.uri)
+
+    def strip_mixcloud_uri(self):
+        return
+
+
+def strip_uri(uri):
+    if uri is None:
+        return None
+    if uri.startswith("mixcloud"):
+        return re.sub(
+            r"^(mixcloud/)(.+)?(cloudcast@cloudcastId=[^@]+)(@.+)?$",
+            r"\1\3",
+            uri,
+        )
+    if uri.startswith("soundcloud"):
+        return re.sub(r"^(soundcloud/)(.+)?(track@trackId=[^@]+)(@.+)?$", r"\1\3", uri)
+    return uri
 
 
 class ListContainer(BaseModel):
@@ -69,3 +75,36 @@ class ToastMessage(BaseModel):
     message: str
     title: str
     type: str
+
+
+class State(BaseModel):
+    status: str
+    position: int
+    title: str
+    artist: str
+    album: str
+    albumart: str
+    uri: str
+    trackType: str
+    seek: int
+    duration: int
+    samplerate: str
+    channels: int
+    bitrate: Any
+    random: Any
+    repeat: Any
+    repeatSingle: bool
+    consume: bool
+    volume: int
+    dbVolume: Any
+    mute: bool
+    disableVolumeControl: bool
+    stream: bool
+    updatedb: bool
+    volatile: bool
+    service: str
+
+
+class StateLog(BaseModel):
+    ts: datetime.datetime
+    state: State
