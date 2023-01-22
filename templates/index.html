@@ -1,23 +1,39 @@
-<h1>Volumio controller</h1>
-<ul>
-    {% for playlist in playlists %}
-    <li>
-        <a href="{{ playlist.url }}">{{ playlist.name }}</a>   
-    </li>
-    {% endfor %}
+<!DOCTYPE html>
+<html>
 
-</ul>
-<!-- TODO: control buttons -->
+<head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Martian%20Mono">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
 
-<iframe name="responseframe" id="responseframe"></iframe>
-<form action="/playback/pause" method="POST" target="responseframe">
-    <input type="submit" value="Pause" />
-</form>
+<body>
+    <h1>Volumio controller</h1>
+    <ul>
+        {% for playlist in playlists %}
+        <li>
+            <a href="{{ playlist.url }}">{{ playlist.name }}</a>
+        </li>
+        {% endfor %}
 
-<form action="/playback/play" method="POST" target="responseframe">
-    <input type="submit" value="Play" />
-</form>
+    </ul>
+    
+    <form action="/playback/pause" method="POST" target="responseframe">
+        <input type="submit" value="Pause" />
+    </form>
 
-<form action="/playback/status" method="GET" target="responseframe">
-    <input type="submit" value="Status" />
-</form>
+    <form action="/playback/play" method="POST" target="responseframe">
+        <input type="submit" value="Play" />
+    </form>
+
+    <form action="/playback/status" method="GET" target="responseframe">
+        <input type="submit" value="Status" />
+    </form>
+
+    <br>
+    <a href="/logs/refresh.log">Refresh log</a>
+    <br><br>
+    <iframe name="responseframe" id="responseframe"></iframe>
+
+</body>
+
+</html>

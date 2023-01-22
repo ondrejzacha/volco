@@ -11,7 +11,7 @@ PLAYLIST_TEMPLATE_HTML = "list.html"
 LATEST_50_NAME = "- latest 50"
 N_LATEST = 50
 
-REFRESH_LOG_PATH = Path("logs/refresh.log")
+STATE_LOG_PATH = Path("logs/state.log")
 
 
 ALL_PLAYLISTS = [

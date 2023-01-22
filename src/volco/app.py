@@ -22,6 +22,11 @@ app = FastAPI(
             app=StaticFiles(directory="logs"),
             name="logs",
         ),
+        Mount(
+            "/static",
+            app=StaticFiles(directory="static"),
+            name="static",
+        ),
     ]
 )
 templates = Jinja2Templates(directory="templates")

@@ -16,7 +16,7 @@ from .constants import (
     PLAYLIST_HTML_DIR,
     PLAYLIST_PATTERNS,
     PLAYLIST_TEMPLATE_HTML,
-    REFRESH_LOG_PATH,
+    STATE_LOG_PATH,
     SOCKETIO_PORT,
     TEMPLATE_DIR,
     VOLUMIO_API_URL,
@@ -168,9 +168,6 @@ def find_candidate_tracks() -> List[ListItem]:
         stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
     )
 
-    logger.info("Getting nts tracks")
-    new_feed_tracks = browse_tracks(
-
     # TODO: get from config
     print("Getting nts tracks")
     candidate_tracks = browse_tracks(
@@ -216,7 +213,7 @@ def main():
     new_feed_tracks = find_candidate_tracks()
     update_playlists(new_feed_tracks, playlist_patterns=PLAYLIST_PATTERNS, vc=vc)
 
-    logs = REFRESH_LOG_PATH.read_text().splitlines()
+    logs = STATE_LOG_PATH.read_text().splitlines()
     track_progress = extract_progress(logs)
 
     print(track_progress)

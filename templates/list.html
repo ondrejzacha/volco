@@ -1,24 +1,32 @@
-<a href="/">Back to home</a>
-<h1>{{ playlist_name }}</h1>
-<ul>
-    {% for track in tracks %}
-    <li>
-        <div>{{ track.title }} ({{ track.progress }})
-            <form action="/playback/replace" method="POST" enctype="multipart/form-data"
-                target="responseframe" style="display: inline;">
-                <input type="hidden" id="service" name="service" value="{{ track.service }}">
-                <input type="hidden" id="uri" name="uri" value='{{ track.uri }}'>
-                <input type="submit" value="Play track">
-            </form>
-        </div>
-        {% endfor %}
+<!DOCTYPE html>
+<html>
 
-        <hr />
 
-        <!-- TODO: style -->
-        <iframe name="responseframe" id="responseframe"></iframe>
+<head>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
 
-</ul>
+<body>
+    <a href="/">Back to home</a>
+    <h1>{{ playlist_name }}</h1>
+    <ul>
+        {% for track in tracks %}
+        <li>
+            <div>{{ track.title }} ({{ track.progress }})
+                <form action="/playback/replace" method="POST" enctype="multipart/form-data" target="responseframe"
+                    style="display: inline;">
+                    <input type="hidden" id="service" name="service" value="{{ track.service }}">
+                    <input type="hidden" id="uri" name="uri" value='{{ track.uri }}'>
+                    <input type="submit" value="Play track">
+                </form>
+            </div>
+            {% endfor %}
+    </ul>
 
-<hr /> 
-<p>Updated on {{ ts }}.</p>
+    <!-- TODO: style -->
+    <iframe name="responseframe" id="responseframe"></iframe>
+
+    <p>Updated on {{ ts }}.</p>
+</body>
+
+</html>
