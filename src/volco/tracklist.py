@@ -1,3 +1,9 @@
+"""Tracklist link extraction
+
+Very specific module to find links to NTS show tracklists
+for currenly playing tracks.
+"""
+
 import re
 from typing import Dict, Optional
 
@@ -17,7 +23,7 @@ class MixcloudResult(BaseModel):
 async def get_tracklist_link(
     client: httpx.AsyncClient,  # noqa: B008
 ) -> Dict[str, str]:
-    # This needs localhost as the call is made on server side
+    """Get NTS tracklist URL for current track"""
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/getState",
     )
@@ -35,9 +41,11 @@ async def get_tracklist_link(
 
 
 async def get_mixcloud_page(name: str, client: httpx.AsyncClient) -> Optional[str]:
+    """Search Mixcloud tracks by title"""
     url = f"https://api.mixcloud.com/search/?q={name}&type=cloudcast"
     r = await client.get(url)
     search_results = [MixcloudResult.parse_obj(obj) for obj in r.json()["data"]]
+    # Mixcloud API does not always return an exact match
     matching_urls = (
         sr.url
         for sr in search_results
@@ -50,6 +58,7 @@ async def get_mixcloud_page(name: str, client: httpx.AsyncClient) -> Optional[st
 
 
 async def get_nts_link(mixcloud_url: str, client: httpx.AsyncClient) -> Optional[str]:
+    """Find a link to NTS show episode page on Mixcloud track page"""
     api_url = mixcloud_url.replace("www.mixcloud", "api.mixcloud")
     r = await client.get(api_url)
 
