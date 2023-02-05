@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional, Union, Any
+from typing import List, Optional, Union, Any, Dict
 import datetime
 
 from pydantic import BaseModel
@@ -108,3 +108,7 @@ class State(BaseModel):
 class StateLog(BaseModel):
     ts: datetime.datetime
     state: State
+
+
+class PlaylistRules(BaseModel):
+    __root__: Dict[str, List[str]]
