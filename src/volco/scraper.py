@@ -169,7 +169,7 @@ def find_candidate_tracks() -> List[ListItem]:
     )
 
     # TODO: get from config
-    print("Getting nts tracks")
+    logger.info("Getting nts tracks")
     candidate_tracks = browse_tracks(
         "mixcloud/user@username=NTSRadio", stop_condition=stop_condition
     )
@@ -185,7 +185,7 @@ def update_playlists(
     all_new_tracks: set[ListItem] = set()
 
     for playlist, patterns in playlist_patterns.items():
-        print(f"Handling playlist `{playlist}`")
+        logger.info(f"Handling playlist `{playlist}`")
         current_tracks = browse_tracks(f"playlists/{playlist}")
         current_uris = set(track.stripped_uri for track in current_tracks)
         matching_tracks = filter_tracks(new_feed_tracks, patterns)
@@ -207,6 +207,13 @@ def update_playlists(
 
 
 def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        filename="logs/refresh.log",
+    )
+
     socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
     vc = VolumioController(socketio)
 
@@ -216,7 +223,6 @@ def main():
     logs = STATE_LOG_PATH.read_text().splitlines()
     track_progress = extract_progress(logs)
 
-    print(track_progress)
     generate_html_files(vc=vc, track_progress=track_progress)
 
 

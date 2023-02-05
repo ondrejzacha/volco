@@ -3,6 +3,10 @@ from typing import Dict, Iterable, Mapping, Sequence
 
 import jinja2
 from volco.models import ListItem, StateLog, strip_uri
+import pydantic
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
@@ -11,7 +15,10 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
 
     # Extract max seek position for each URI
     for line in logs:
-        log = StateLog.parse_raw(line)
+        try:
+            log = StateLog.parse_raw(line)
+        except pydantic.error_wrappers.ValidationError as e:
+            logger.warning(f"Unable to parse line:\n{log}\nFull error:\n{e}")
         uri = strip_uri(log.state.uri)
         max_seek_positions[uri] = max(log.state.seek, max_seek_positions.get(uri, 0))
         durations[uri] = log.state.duration
@@ -32,6 +39,8 @@ def render_playlist_page(
     track_progress: Mapping[str, str],
     template: jinja2.Template,
 ) -> str:
+    logger.info("Rendering playlist page for `{title}`.")
+
     track_data = [
         {**track.dict(), "progress": track_progress.get(track.stripped_uri, 0)}
         for track in tracks
