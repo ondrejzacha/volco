@@ -1,7 +1,7 @@
+import json
+import logging
 from collections import Counter
 from functools import partial
-from typing import Callable, Collection, List, Optional, Sequence
-import logging
 from typing import Callable, Collection, List, Mapping, Optional, Sequence
 
 import httpx
@@ -14,14 +14,13 @@ from .constants import (
     LATEST_50_NAME,
     N_LATEST,
     PLAYLIST_HTML_DIR,
-    # PLAYLIST_PATTERNS,
+    PLAYLIST_PATTERN_PATH,
     PLAYLIST_TEMPLATE_HTML,
-    STATE_LOG_PATH,
     SOCKETIO_PORT,
+    STATE_LOG_PATH,
     TEMPLATE_DIR,
     VOLUMIO_API_URL,
     VOLUMIO_URL,
-    VOLUMIO_API_URL,
 )
 from .controller import VolumioController
 from .models import BrowseResponse, ListItem

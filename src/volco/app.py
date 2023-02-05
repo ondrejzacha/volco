@@ -1,18 +1,17 @@
-from typing import Dict, List
 import json
+from typing import Dict, List
 
 import httpx
-from fastapi import Depends, FastAPI, Form, Request, HTTPException
+import pydantic
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.routing import Mount
-import pydantic
 
-from .constants import ALL_PLAYLISTS, VOLUMIO_API_URL, PLAYLIST_PATTERN_PATH
-from .scraper import strip_name
+from .constants import ALL_PLAYLISTS, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
 from .models import PlaylistRules
-
+from .scraper import strip_name
 
 app = FastAPI(
     routes=[

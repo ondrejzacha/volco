@@ -1,10 +1,10 @@
+import logging
 from datetime import datetime
 from typing import Dict, Iterable, Mapping, Sequence
 
 import jinja2
+
 from volco.models import ListItem, StateLog, strip_uri
-import pydantic
-import logging
 
 logger = logging.getLogger(__name__)
 
