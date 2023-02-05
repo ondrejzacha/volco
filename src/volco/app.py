@@ -4,7 +4,7 @@ from typing import Dict, List
 import httpx
 import pydantic
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.routing import Mount
@@ -12,6 +12,7 @@ from starlette.routing import Mount
 from .constants import ALL_PLAYLISTS, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
 from .models import PlaylistRules
 from .scraper import strip_name
+from .tracklist import get_tracklist_link
 
 app = FastAPI(
     routes=[
@@ -148,3 +149,13 @@ async def get_status(
         f"http://{VOLUMIO_API_URL}/api/v1/getState",
     )
     return r.json()
+
+
+@app.get("/tracklist")
+async def get_tracklist(
+    client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
+) -> Dict[str, str]:
+    tracklist_link = await get_tracklist_link(client)
+    if tracklist_link is not None:
+        return RedirectResponse(tracklist_link)
+    return None
