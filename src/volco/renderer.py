@@ -15,10 +15,11 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
 
     # Extract max seek position for each URI
     for line in logs:
-        try:
-            log = StateLog.parse_raw(line)
-        except pydantic.error_wrappers.ValidationError as e:
-            logger.warning(f"Unable to parse line:\n{log}\nFull error:\n{e}")
+        log = StateLog.parse_raw(line)
+
+        if log.state.service not in {"mixcloud", "soundcloud"}:
+            continue
+
         uri = strip_uri(log.state.uri)
         max_seek_positions[uri] = max(log.state.seek, max_seek_positions.get(uri, 0))
         durations[uri] = log.state.duration
@@ -28,6 +29,13 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
     for uri, duration in durations.items():
         # "Seek" is in microseconds, duration in seconds
         max_seek_seconds = max_seek_positions[uri] / 1000
+
+        if duration == 0:
+            logger.warning(
+                f"Found track log with zero duration for URI {uri}. Skipping."
+            )
+            continue
+
         progress[uri] = round(max_seek_seconds / duration, 1) * 100
 
     return progress
@@ -39,8 +47,6 @@ def render_playlist_page(
     track_progress: Mapping[str, str],
     template: jinja2.Template,
 ) -> str:
-    logger.info("Rendering playlist page for `{title}`.")
-
     track_data = [
         {**track.dict(), "progress": track_progress.get(track.stripped_uri, 0)}
         for track in tracks

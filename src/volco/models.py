@@ -79,30 +79,30 @@ class ToastMessage(BaseModel):
 
 class State(BaseModel):
     status: str
-    position: int
+    service: str
+    uri: str
     title: str
     artist: str
-    album: str
-    albumart: str
-    uri: str
-    trackType: str
     seek: int
     duration: int
-    samplerate: str
-    channels: int
+    albumart: Optional[str]
+    album: Optional[str]
+    position: Optional[int]
+    trackType: Optional[str]
+    samplerate: Optional[str]
+    channels: Optional[int]
     bitrate: Any
     random: Any
     repeat: Any
-    repeatSingle: bool
-    consume: bool
-    volume: int
-    dbVolume: Any
-    mute: bool
-    disableVolumeControl: bool
-    stream: bool
-    updatedb: bool
-    volatile: bool
-    service: str
+    repeatSingle: Optional[bool]
+    consume: Optional[bool]
+    volume: Optional[int]
+    dbVolume: Optional[Any]
+    mute: Optional[bool]
+    disableVolumeControl: Optional[bool]
+    stream: Optional[bool]
+    updatedb: Optional[bool]
+    volatile: Optional[bool]
 
 
 class StateLog(BaseModel):

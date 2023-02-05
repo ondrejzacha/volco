@@ -138,6 +138,8 @@ def generate_html_files(
     if track_progress is None:
         track_progress = {}
 
+    logger.info("Generating HTML pages for playlists.")
+
     loader = jinja2.FileSystemLoader(TEMPLATE_DIR)
     environment = jinja2.Environment(loader=loader)
     template = environment.get_template(PLAYLIST_TEMPLATE_HTML)
