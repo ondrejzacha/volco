@@ -1,13 +1,16 @@
+import json
 from typing import Dict, List
 
 import httpx
-from fastapi import Depends, FastAPI, Form, Request
+import pydantic
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.routing import Mount
 
-from .constants import ALL_PLAYLISTS, VOLUMIO_API_URL
+from .constants import ALL_PLAYLISTS, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
+from .models import PlaylistRules
 from .scraper import strip_name
 
 app = FastAPI(
@@ -63,6 +66,34 @@ async def get_index(request: Request):
             "playlists": playlist_urls,
         },
     )
+
+
+@app.get("/patterns", response_class=HTMLResponse)
+async def get_patterns(request: Request):
+    current_patterns = PLAYLIST_PATTERN_PATH.read_text()
+    return templates.TemplateResponse(
+        "patterns.html",
+        {
+            "request": request,
+            "current_patterns": current_patterns,
+        },
+    )
+
+
+@app.post("/patterns/submit")
+async def submit_patterns(
+    playlist_rules: str = Form(),  # noqa: B008
+    client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
+) -> Dict[str, str]:
+    try:
+        parsed_rules = PlaylistRules.parse_raw(playlist_rules)
+    except (json.JSONDecodeError, pydantic.error_wrappers.ValidationError) as e:
+        raise HTTPException(status_code=400, detail=f"Wrong format. Full message: {e}.")
+
+    new_rules_json = json.dumps(parsed_rules.__root__, indent=2)
+    PLAYLIST_PATTERN_PATH.write_text(new_rules_json)
+
+    return "Playlist rules updated."
 
 
 @app.get("/health")

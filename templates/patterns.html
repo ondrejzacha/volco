@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Martian%20Mono">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <a href="/">Back to home</a>
+
+    <h1>Playlist patterns</h1>
+
+    <form action="/playback/pause" method="POST" target="responseframe">
+        <input type="submit" value="Pause" />
+    </form>
+
+    <form action="/patterns/submit" method="POST" target="responseframe">
+        <textarea id="playlist_rules" name="playlist_rules" rows="40" cols="80">
+{{ current_patterns }}    
+        </textarea>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <br>
+
+    <iframe name="responseframe" id="responseframe"></iframe>
+
+</body>
+
+</html>
