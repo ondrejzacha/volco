@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import httpx
 import pydantic
@@ -9,10 +9,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.routing import Mount
 
-from .constants import ALL_PLAYLISTS, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
-from .models import PlaylistRules
-from .scraper import strip_name
-from .tracklist import get_tracklist_link
+from volco.constants import ALL_PLAYLISTS, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
+from volco.models import PlaylistRules
+from volco.tracklist import get_tracklist_link
+from volco.updater import strip_name
 
 app = FastAPI(
     routes=[
@@ -85,7 +85,7 @@ async def get_patterns(request: Request):
 async def submit_patterns(
     playlist_rules: str = Form(),  # noqa: B008
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Dict[str, str]:
+) -> str:
     try:
         parsed_rules = PlaylistRules.parse_raw(playlist_rules)
     except (json.JSONDecodeError, pydantic.error_wrappers.ValidationError) as e:
@@ -154,7 +154,7 @@ async def get_status(
 @app.get("/tracklist")
 async def get_tracklist(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Dict[str, str]:
+) -> Optional[RedirectResponse]:
     tracklist_link = await get_tracklist_link(client)
     if tracklist_link is not None:
         return RedirectResponse(tracklist_link)

@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 from socketIO_client import SocketIO
@@ -9,9 +9,9 @@ from .models import BrowseResponse, ListItem, ResultList, ToastMessage, VolumioR
 class VolumioController:
     def __init__(self, socketio: SocketIO):
         self.socketio = socketio
-        self.responses: dict[str, Any] = {}
+        self.responses: Dict[str, Any] = {}
 
-    def _create_callback(self, message: str) -> "Callable[[Any], None]":
+    def _create_callback(self, message: str) -> Callable[[Any], None]:
         def inner(*args):
             self.responses[message] = args
 
@@ -31,9 +31,9 @@ class VolumioController:
     def call(
         self,
         message_out: str,
-        message_in: str = None,
+        message_in: Optional[str] = None,
         data: Any = None,
-        response_model: BaseModel = None,
+        response_model: Optional[BaseModel] = None,
     ) -> Union[BaseModel, tuple, None]:
         if message_in:
             self._listen_for(message_in)
@@ -47,7 +47,7 @@ class VolumioController:
             return None
 
         response = self._get_response(message_in)
-        if response_model is not None:
+        if isinstance(response_model, tuple):
             return response_model.parse_obj(response[0])
         return response
 

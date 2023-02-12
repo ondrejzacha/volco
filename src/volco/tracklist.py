@@ -5,7 +5,7 @@ for currenly playing tracks.
 """
 
 import re
-from typing import Dict, Optional
+from typing import Optional
 
 import httpx
 from pydantic import BaseModel
@@ -22,7 +22,7 @@ class MixcloudResult(BaseModel):
 
 async def get_tracklist_link(
     client: httpx.AsyncClient,  # noqa: B008
-) -> Dict[str, str]:
+) -> Optional[str]:
     """Get NTS tracklist URL for current track"""
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/getState",

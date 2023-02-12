@@ -25,7 +25,7 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
         durations[uri] = log.state.duration
 
     # Calculate progress percentage
-    progress: Dict[str, float] = {}
+    progress: Dict[str, int] = {}
     for uri, duration in durations.items():
         # "Seek" is in microseconds, duration in seconds
         max_seek_seconds = max_seek_positions[uri] / 1000
@@ -36,7 +36,7 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
             )
             continue
 
-        progress[uri] = round(max_seek_seconds / duration, 1) * 100
+        progress[uri] = int(round(max_seek_seconds / duration, 1) * 100)
 
     return progress
 
@@ -44,7 +44,7 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
 def render_playlist_page(
     title: str,
     tracks: Sequence[ListItem],
-    track_progress: Mapping[str, str],
+    track_progress: Mapping[str, int],
     template: jinja2.Template,
 ) -> str:
     track_data = [
