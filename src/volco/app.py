@@ -33,7 +33,7 @@ app = FastAPI(
     ]
 )
 templates = Jinja2Templates(directory="templates")
-
+index_html = INDEX_PATH.read_text()
 
 async def get_client():
     # create a new client for each request
@@ -45,7 +45,7 @@ async def get_client():
 
 @app.get("/", response_class=HTMLResponse)
 async def get_index():
-    return INDEX_PATH.read_text()
+    return index_html
 
 
 @app.get("/patterns", response_class=HTMLResponse)
