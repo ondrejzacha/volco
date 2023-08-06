@@ -152,7 +152,7 @@ def update_playlists(
                 continue
 
             logger.info(f"Adding track `{track.title}` to playlist `{playlist}`.")
-            vc.add_to_playlist(playlist, service="mixcloud", uri=track.stripped_uri)
+            vc.add_to_playlist(playlist, service=track.service, uri=track.stripped_uri)
 
             all_new_tracks.add(track)
 
