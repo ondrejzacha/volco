@@ -1,3 +1,5 @@
+# TODO: move this to config
+
 from pathlib import Path
 
 # VOLUMIO_URL = "192.168.2.22"
@@ -17,25 +19,12 @@ N_LATEST = 50
 
 STATE_LOG_PATH = Path("logs/state.log")
 
-
-ALL_PLAYLISTS = [
-    "- ad93, tasker",
-    "- ambi",
-    "- dark dancey",
-    "- demanding",
-    "- fergus clark, optimo, lukid",
-    "- fun dancey",
-    "- john gomez, mr pedro, dj python, felix hall",
-    "- latest 50",
-    "- lupini",
-    "- maria, spirit blue",
-    "- nordi",
-    "- smart dancey",
-    "jazzy?",
-    "later",
-    "main",
-    "mixes for a curious mind",
-    "nts",
-    "undefined",
-    "upbeat",
+TRACK_SOURCES = [
+    "soundcloud/tracks@userId=995174173",  # NTS Monday
+    "soundcloud/tracks@userId=995174689",  # NTS Tuesday
+    "soundcloud/tracks@userId=995898355",  # NTS Wednesday
+    "soundcloud/tracks@userId=995897410",  # NTS Thursday
+    "soundcloud/tracks@userId=995888653",  # NTS Friday
+    "soundcloud/tracks@userId=995579326",  # NTS Saturday
+    "soundcloud/tracks@userId=995580424",  # NTS Sunday
 ]
