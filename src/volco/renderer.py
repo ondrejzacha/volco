@@ -61,3 +61,17 @@ def render_playlist_page(
     )
 
     return rendered
+
+
+def render_index_file(
+    playlist_files: Mapping[str, str],
+    template: jinja2.Template,
+) -> str:
+    playlist_urls = [
+        {"name": playlist, "url": f"/playlists/{filename}"}
+        for playlist, filename in playlist_files.items()
+    ]
+
+    rendered = template.render({"playlist_urls": playlist_urls})
+
+    return rendered

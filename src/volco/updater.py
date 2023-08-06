@@ -2,17 +2,19 @@ import json
 import logging
 from collections import Counter
 from functools import partial
-from typing import Collection, List, Mapping, Optional, Set
+from typing import Collection, Dict, List, Mapping, Optional, Set
 
 import jinja2
 from socketIO_client import SocketIO
 
 from volco.controller import VolumioController
 from volco.models import ListItem
-from volco.renderer import extract_progress, render_playlist_page
+from volco.renderer import extract_progress, render_index_file, render_playlist_page
 from volco.scraper import browse_tracks, stop_on_overlap
 
 from .constants import (
+    INDEX_PATH,
+    INDEX_TEMPLATE_HTML,
     LATEST_50_NAME,
     N_LATEST,
     PLAYLIST_HTML_DIR,
@@ -73,37 +75,42 @@ def update_new_additions_playlist(
 
 def generate_html_files(
     vc: VolumioController,
-    playlists: Optional[Collection[str]] = None,
     track_progress: Optional[Mapping[str, int]] = None,
 ) -> None:
-    if playlists is None:
-        playlists = vc.list_playlists()
-    if track_progress is None:
-        track_progress = {}
-
     logger.info("Generating HTML pages for playlists.")
 
     loader = jinja2.FileSystemLoader(TEMPLATE_DIR)
     environment = jinja2.Environment(loader=loader)
     template = environment.get_template(PLAYLIST_TEMPLATE_HTML)
 
+    playlists = vc.list_playlists()
+
+    playlist_files: Dict[str, str] = {}
     for playlist in playlists:
         tracks = vc.list_tracks(playlist)
 
         rendered = render_playlist_page(
             title=playlist,
             tracks=tracks,
-            track_progress=track_progress,
+            track_progress=track_progress or {},
             template=template,
         )
 
-        stripped = strip_name(playlist)
-        output_path = PLAYLIST_HTML_DIR / f"{stripped}.html"
+        filename = generate_filename(playlist)
+
+        playlist_files[playlist] = filename
+        output_path = PLAYLIST_HTML_DIR / filename
         output_path.write_text(rendered)
 
+    index_template = environment.get_template(INDEX_TEMPLATE_HTML)
+    rendered_index = render_index_file(playlist_files, index_template)
+    INDEX_PATH.write_text(rendered_index)
 
-def strip_name(name: str) -> str:
-    return name.replace(" ", "_").replace(",", "_")
+
+def generate_filename(name: str) -> str:
+    name = name.replace(" ", "_")
+    name = name.replace(",", "_")
+    return f"{name}.html"
 
 
 def find_candidate_tracks() -> List[ListItem]:

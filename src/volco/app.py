@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import httpx
 import pydantic
@@ -9,10 +9,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.routing import Mount
 
-from volco.constants import ALL_PLAYLISTS, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
+from volco.constants import INDEX_PATH, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
 from volco.models import PlaylistRules
 from volco.tracklist import get_tracklist_link
-from volco.updater import strip_name
 
 app = FastAPI(
     routes=[
@@ -34,7 +33,6 @@ app = FastAPI(
     ]
 )
 templates = Jinja2Templates(directory="templates")
-playlist_urls: List[Dict[str, str]] = []
 
 
 async def get_client():
@@ -45,28 +43,9 @@ async def get_client():
         # close the client when the request is done
 
 
-@app.on_event("startup")
-async def startup_event():
-    global playlist_urls
-    # TODO: get from volumio on startup
-    playlist_urls.clear()
-    # TODO: smarter
-    playlist_urls += [
-        {"name": playlist, "url": f"/playlists/{strip_name(playlist)}.html"}
-        for playlist in ALL_PLAYLISTS
-    ]
-
-
 @app.get("/", response_class=HTMLResponse)
-async def get_index(request: Request):
-    # Index needs "public" URL as it needs to call API from client side
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "playlists": playlist_urls,
-        },
-    )
+async def get_index():
+    return INDEX_PATH.read_text()
 
 
 @app.get("/patterns", response_class=HTMLResponse)
@@ -84,7 +63,6 @@ async def get_patterns(request: Request):
 @app.post("/patterns/submit")
 async def submit_patterns(
     playlist_rules: str = Form(),  # noqa: B008
-    client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> str:
     try:
         parsed_rules = PlaylistRules.parse_raw(playlist_rules)
