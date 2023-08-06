@@ -41,6 +41,7 @@ def browse_tracks(
         browse_response = BrowseResponse.parse_obj(browse_json)
 
         list_items = browse_response.navigation.lists[-1].items  # TODO: fix lists[-1]
+        logger.info(f"{len(list_items)}")
 
         for item in list_items:
             if item.type not in {"song", "folder"} or item in all_tracks:

@@ -72,6 +72,6 @@ def render_index_file(
         for playlist, filename in playlist_files.items()
     ]
 
-    rendered = template.render({"playlist_urls": playlist_urls})
+    rendered = template.render({"playlists": playlist_urls})
 
     return rendered
