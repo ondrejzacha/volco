@@ -7,12 +7,14 @@ authors = ["Ondrej Zacha <zachaondrej@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 httpx = "^0.23.1"
-fastapi = "0.93"
+fastapi = "0.97"
 uvicorn = "^0.20.0"
 socketIO-client = "^0.7.2"
 pydantic = "^1.10.2"
 python-multipart = "^0.0.5"
 Jinja2 = "^3.1.2"
+requests = "2.31.0"
+pygments = "2.15.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.12.0"
