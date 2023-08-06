@@ -23,6 +23,7 @@ from .constants import (
     SOCKETIO_PORT,
     STATE_LOG_PATH,
     TEMPLATE_DIR,
+    TRACK_SOURCES,
     VOLUMIO_URL,
 )
 
@@ -120,13 +121,13 @@ def find_candidate_tracks() -> List[ListItem]:
         stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
     )
 
-    # TODO: get from config
-    logger.info("Getting nts tracks")
-    candidate_tracks = browse_tracks(
-        "mixcloud/user@username=NTSRadio", stop_condition=stop_condition
-    )
+    all_tracks: List[ListItem] = []
+    for track_source in TRACK_SOURCES:
+        source_tracks = browse_tracks(track_source, stop_condition=stop_condition)
+        logger.info(f"Got {len(source_tracks)} tracks from {track_source}")
+        all_tracks += source_tracks
 
-    return candidate_tracks
+    return all_tracks
 
 
 def update_playlists(
@@ -151,7 +152,7 @@ def update_playlists(
                 continue
 
             logger.info(f"Adding track `{track.title}` to playlist `{playlist}`.")
-            vc.add_to_playlist(playlist, service="mixcloud", uri=track.stripped_uri)
+            vc.add_to_playlist(playlist, service=track.service, uri=track.stripped_uri)
 
             all_new_tracks.add(track)
 
