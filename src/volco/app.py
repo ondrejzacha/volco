@@ -130,7 +130,7 @@ async def get_status(
     return r.json()
 
 
-@app.get("/tracklist")
+@app.get("/tracklist", response_model=None)
 async def get_tracklist(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> Optional[RedirectResponse]:
