@@ -23,6 +23,7 @@ from .constants import (
     SOCKETIO_PORT,
     STATE_LOG_PATH,
     TEMPLATE_DIR,
+    TRACK_PROGRESS_PATH,
     TRACK_SOURCES,
     VOLUMIO_URL,
 )
@@ -177,6 +178,7 @@ def main():
 
     logs = STATE_LOG_PATH.read_text().splitlines()
     track_progress = extract_progress(logs)
+    TRACK_PROGRESS_PATH.write_text(json.dumps(track_progress))
 
     generate_html_files(vc=vc, track_progress=track_progress)
 

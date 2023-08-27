@@ -18,6 +18,7 @@ LATEST_50_NAME = "- latest 50"
 N_LATEST = 50
 
 STATE_LOG_PATH = Path("logs/state.log")
+TRACK_PROGRESS_PATH = Path("logs/track_progress.json")
 
 TRACK_SOURCES = [
     "soundcloud/tracks@userId=995174173",  # NTS Monday
