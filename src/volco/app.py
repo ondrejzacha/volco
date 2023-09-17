@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import httpx
 import pydantic
@@ -122,7 +122,7 @@ async def pause(
 @app.get("/playback/status")
 async def get_status(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Dict[str, str]:
+) -> Dict[str, Any]:
     # This needs localhost as the call is made on server side
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/getState",
