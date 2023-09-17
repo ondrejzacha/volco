@@ -4,11 +4,15 @@
 <head>
     <title>Volco: Volumio Controller</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:400,600,900">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
     <h1>Volumio controller</h1>
+    
+    <h3>Playlists</h3>
+
     <ul>
         {% for playlist in playlists %}
         <li>
@@ -17,27 +21,27 @@
         {% endfor %}
 
     </ul>
-    
-    <form action="/playback/pause" method="POST" target="responseframe" class="button">
-        <input type="submit" value="Pause" />
-    </form>
 
+    <h3>Playback</h3>
+    
     <form action="/playback/play" method="POST" target="responseframe" class="button">
         <input type="submit" value="Play" />
+    </form>
+
+    <form action="/playback/pause" method="POST" target="responseframe" class="button">
+        <input type="submit" value="Pause" />
     </form>
 
     <form action="/playback/status" method="GET" target="responseframe" class="button">
         <input type="submit" value="Status" />
     </form>
-    <br>
-    <form action="/tracklist" method="GET" target="_blank">
-        <input type="submit" value="Get tracklist" />
-    </form>
-
-    <br>
-    <a href="/logs/refresh.log">Refresh log</a><br>
-    <a href="/patterns">Playlist patterns</a>
-    <br><br>
+    
+    <h3>Misc</h3>
+    <ul>
+        <li><a href="/tracklist" target="_blank">Get NTS tracklist</a></li>
+        <li><a href="/patterns">Update playlist patterns</a></li>
+        <li><a href="/logs/refresh.log">View refresh log</a></li>
+    </ul>
     <iframe name="responseframe" id="responseframe"></iframe>
 
 </body>

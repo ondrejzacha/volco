@@ -43,17 +43,21 @@ form {
 form.tracklink input {
     padding: 5px;
     margin: 0px;
-    color: purple;
+    /* color: purple; */
 }
 
 form input {
-    display: inline;
+    /* display: inline; */
     background: none;
     border: none;
     padding: 5px 10px;
     font: inherit;
     text-decoration: none;
     cursor: pointer;
+}
+
+form.button {
+    display: inline;
 }
 
 form.button input {
@@ -68,7 +72,8 @@ form.button input {
 } */
 
 ul {
-    padding: 40px;
+    padding-top: 20px;
+    padding-bottom: 40px;
     padding-inline-start: 40px;   
 }
 
@@ -79,11 +84,11 @@ iframe#responseframe {
     width: 100%;
     /* height: 20%; */
     background-color: rgb(243, 243, 239);
-    /* color: white; */
     border-width: 0;
     text-align: center;
     vertical-align: bottom;
     border-radius: 10px;
+    font-family: "Roboto Mono", monospace;
 }
 
 form textarea {
