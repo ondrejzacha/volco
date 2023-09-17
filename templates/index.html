@@ -3,7 +3,7 @@
 
 <head>
     <title>Volco: Volumio Controller</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Martian%20Mono">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:400,600,900">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -18,15 +18,15 @@
 
     </ul>
     
-    <form action="/playback/pause" method="POST" target="responseframe">
+    <form action="/playback/pause" method="POST" target="responseframe" class="button">
         <input type="submit" value="Pause" />
     </form>
 
-    <form action="/playback/play" method="POST" target="responseframe">
+    <form action="/playback/play" method="POST" target="responseframe" class="button">
         <input type="submit" value="Play" />
     </form>
 
-    <form action="/playback/status" method="GET" target="responseframe">
+    <form action="/playback/status" method="GET" target="responseframe" class="button">
         <input type="submit" value="Status" />
     </form>
     <br>
