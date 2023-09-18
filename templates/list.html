@@ -4,30 +4,35 @@
 
 <head>
     <title>Volco: {{ playlist_name }}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:400,600,900">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
-    <a href="/">Back to home</a>
-    <h1>{{ playlist_name }}</h1>
-    <ul>
-        {% for track in tracks %}
-        <li>
-            <div>{{ track.title }} ({{ track.progress }})
-                <form action="/playback/replace" method="POST" enctype="multipart/form-data" target="responseframe"
-                    style="display: inline;">
-                    <input type="hidden" id="service" name="service" value="{{ track.service }}">
-                    <input type="hidden" id="uri" name="uri" value='{{ track.uri }}'>
-                    <input type="submit" value="Play track ({% if track.service == 'soundcloud' %}Sc{% elif track.service == 'mixcloud' %}Mc{% else %}?{% endif %})">
-                </form>
-            </div>
-            {% endfor %}
-    </ul>
+    <div class="container">
+        <a href="/">&larr; Back to home</a>
+        <h1>{{ playlist_name }}</h1>
+        <ul class="padded"> 
+            {% for track in tracks %}
+            <li>
+                <div>
+                    <form action="/playback/replace" method="POST" enctype="multipart/form-data" target="responseframe"
+                        class="tracklink">
+                        <input type="hidden" id="service" name="service" value="{{ track.service }}">
+                        <input type="hidden" id="uri" name="uri" value='{{ track.uri }}'>
+                        <input type="submit"
+                            value="{{ track.title }} ({{ track.progress }}%, {% if track.service == 'soundcloud' %}Sc{% elif track.service == 'mixcloud' %}Mc{% else %}?{% endif %})">
+                    </form>
+                </div>
+                {% endfor %}
+        </ul>
 
-    <!-- TODO: style -->
-    <iframe name="responseframe" id="responseframe"></iframe>
+        <!-- TODO: style -->
+        <iframe name="responseframe" id="responseframe"></iframe>
 
-    <p>Updated on {{ ts }}.</p>
+        <p>Updated on {{ ts.strftime("%d %b %Y, %H:%M:%S") }}.</p>
+    </div>
 </body>
 
 </html>

@@ -3,26 +3,29 @@
 
 <head>
     <title>Volco: Playlist patterns</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Martian%20Mono">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:400,600,900">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
-    <a href="/">Back to home</a>
+    <div class="container">
+        <a href="/">&larr; Back to home</a>
 
-    <h1>Playlist patterns</h1>
-    <form action="/patterns/submit" method="POST" target="responseframe">
-        <textarea id="playlist_rules" name="playlist_rules" rows="40" cols="80">
+        <h1>Playlist patterns</h1>
+        <div class="padded">
+        <form action="/patterns/submit" method="POST" target="responseframe" class="button">
+            <textarea id="playlist_rules" name="playlist_rules" rows="40" cols="80">
 {{ current_patterns }}    
         </textarea>
+            <br>
+            <input type="submit" value="Submit">
+        </form>
+
         <br>
-        <input type="submit" value="Submit">
-    </form>
-
-    <br>
-
-    <iframe name="responseframe" id="responseframe"></iframe>
-
+    </div>
+        <iframe name="responseframe" id="responseframe"></iframe>
+    </div>
 </body>
 
 </html>

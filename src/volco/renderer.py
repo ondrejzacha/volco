@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, Iterable, Mapping, Sequence
 
 import jinja2
+import pydantic
 
 from volco.models import ListItem, StateLog, strip_uri
 
@@ -15,7 +16,10 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
 
     # Extract max seek position for each URI
     for line in logs:
-        log = StateLog.parse_raw(line)
+        try:
+            log = StateLog.parse_raw(line)
+        except pydantic.error_wrappers.ValidationError:
+            continue
 
         if log.state.service not in {"mixcloud", "soundcloud"}:
             continue
