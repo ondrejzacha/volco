@@ -176,7 +176,10 @@ def main():
     playlist_patterns = json.loads(PLAYLIST_PATTERN_PATH.read_text())
     update_playlists(new_feed_tracks, playlist_patterns=playlist_patterns, vc=vc)
 
-    logs = STATE_LOG_PATH.read_text().splitlines()
+    STATE_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    TRACK_PROGRESS_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    logs = STATE_LOG_PATH.read_text().splitlines() if STATE_LOG_PATH.exists() else []
     track_progress = extract_progress(logs)
     TRACK_PROGRESS_PATH.write_text(json.dumps(track_progress))
 

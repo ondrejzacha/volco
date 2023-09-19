@@ -51,7 +51,9 @@ async def get_index():
 
 @app.get("/patterns", response_class=HTMLResponse)
 async def get_patterns(request: Request):
-    current_patterns = PLAYLIST_PATTERN_PATH.read_text()
+    current_patterns = (
+        PLAYLIST_PATTERN_PATH.read_text() if PLAYLIST_PATTERN_PATH.exists() else "{}"
+    )
     return templates.TemplateResponse(
         "patterns.html",
         {
