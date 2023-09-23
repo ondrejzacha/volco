@@ -165,5 +165,9 @@ cython_debug/
 .python_version
 notebooks/html/
 backup/
+
 !/static/style.css
+py.typed
+logs/
+
 
