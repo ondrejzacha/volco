@@ -160,7 +160,7 @@ def update_playlists(
     update_new_additions_playlist(all_new_tracks, vc=vc)
 
 
-def main():
+def main(update_tracks=True):
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
@@ -168,22 +168,27 @@ def main():
         filename="logs/refresh.log",
     )
 
-    socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
-    vc = VolumioController(socketio)
+    with SocketIO(VOLUMIO_URL, SOCKETIO_PORT) as socketio:
+        vc = VolumioController(socketio)
 
-    new_feed_tracks = find_candidate_tracks()
+        if update_tracks:
+            new_feed_tracks = find_candidate_tracks()
 
-    playlist_patterns = json.loads(PLAYLIST_PATTERN_PATH.read_text())
-    update_playlists(new_feed_tracks, playlist_patterns=playlist_patterns, vc=vc)
+            playlist_patterns = json.loads(PLAYLIST_PATTERN_PATH.read_text())
+            update_playlists(
+                new_feed_tracks, playlist_patterns=playlist_patterns, vc=vc
+            )
 
-    STATE_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    TRACK_PROGRESS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATE_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        TRACK_PROGRESS_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    logs = STATE_LOG_PATH.read_text().splitlines() if STATE_LOG_PATH.exists() else []
-    track_progress = extract_progress(logs)
-    TRACK_PROGRESS_PATH.write_text(json.dumps(track_progress))
+        logs = (
+            STATE_LOG_PATH.read_text().splitlines() if STATE_LOG_PATH.exists() else []
+        )
+        track_progress = extract_progress(logs)
+        TRACK_PROGRESS_PATH.write_text(json.dumps(track_progress))
 
-    generate_html_files(vc=vc, track_progress=track_progress)
+        generate_html_files(vc=vc, track_progress=track_progress)
 
 
 if __name__ == "__main__":
