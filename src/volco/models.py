@@ -1,8 +1,8 @@
 import datetime
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 
 
 class UriItem(BaseModel):
@@ -77,32 +77,13 @@ class ToastMessage(BaseModel):
     type: str
 
 
-class State(BaseModel):
+class State(BaseModel, extra=Extra.ignore):
     status: str
     service: str
     uri: str
     title: str
     artist: str
     seek: int
-    duration: int
-    albumart: Optional[str]
-    album: Optional[str]
-    position: Optional[int]
-    trackType: Optional[str]
-    samplerate: Optional[str]
-    channels: Optional[int]
-    bitrate: Any
-    random: Any
-    repeat: Any
-    repeatSingle: Optional[bool]
-    consume: Optional[bool]
-    volume: Optional[int]
-    dbVolume: Optional[Any]
-    mute: Optional[bool]
-    disableVolumeControl: Optional[bool]
-    stream: Optional[bool]
-    updatedb: Optional[bool]
-    volatile: Optional[bool]
 
 
 class StateLog(BaseModel):
@@ -112,3 +93,8 @@ class StateLog(BaseModel):
 
 class PlaylistRules(BaseModel):
     __root__: Dict[str, List[str]]
+
+
+class PlayerResponse(BaseModel):
+    time: int
+    response: str

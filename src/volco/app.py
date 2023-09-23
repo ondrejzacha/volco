@@ -16,7 +16,7 @@ from volco.constants import (
     TEMPLATE_DIR,
     VOLUMIO_API_URL,
 )
-from volco.models import PlaylistRules
+from volco.models import PlayerResponse, PlaylistRules, State
 from volco.tracklist import get_tracklist_link
 
 app = FastAPI(
@@ -108,34 +108,34 @@ async def play_track(
 @app.post("/playback/play")
 async def play(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Dict[str, str]:
+) -> PlayerResponse:
     # This needs localhost as the call is made on server side
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/commands/?cmd=play",
     )
-    return r.json()
+    return PlayerResponse.parse_obj(r.json())
 
 
 @app.post("/playback/pause")
 async def pause(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Dict[str, str]:
+) -> PlayerResponse:
     # This needs localhost as the call is made on server side
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/commands/?cmd=pause",
     )
-    return r.json()
+    return PlayerResponse.parse_obj(r.json())
 
 
 @app.get("/playback/status")
 async def get_status(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Dict[str, Any]:
+) -> State:
     # This needs localhost as the call is made on server side
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/getState",
     )
-    return r.json()
+    return State.parse_obj(r.json())
 
 
 @app.get("/tracklist", response_model=None)
