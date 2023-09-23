@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Any, Dict, Optional
 
 import httpx
@@ -9,7 +10,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.routing import Mount
 
-from volco.constants import INDEX_PATH, PLAYLIST_PATTERN_PATH, VOLUMIO_API_URL
+from volco.constants import (
+    INDEX_PATH,
+    PLAYLIST_PATTERN_PATH,
+    TEMPLATE_DIR,
+    VOLUMIO_API_URL,
+)
 from volco.models import PlaylistRules
 from volco.tracklist import get_tracklist_link
 
@@ -32,7 +38,7 @@ app = FastAPI(
         ),
     ]
 )
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=TEMPLATE_DIR)
 index_html = INDEX_PATH.read_text()
 
 
@@ -136,7 +142,15 @@ async def get_status(
 async def get_tracklist(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> Optional[RedirectResponse]:
-    tracklist_link = await get_tracklist_link(client)
+    try:
+        sc_client_id = os.environ["SOUNDCLOUD_CLIENT_ID"]
+        sc_oauth_token = os.environ["SOUNDCLOUD_OAUTH_TOKEN"]
+    except KeyError:
+        raise HTTPException(503, "SoundCloud credentials not available")
+
+    tracklist_link = await get_tracklist_link(
+        client, sc_client_id=sc_client_id, sc_oauth_token=sc_oauth_token
+    )
     if tracklist_link is not None:
         return RedirectResponse(tracklist_link)
     return None

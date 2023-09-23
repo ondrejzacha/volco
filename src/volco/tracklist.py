@@ -24,19 +24,23 @@ class MixcloudResult(BaseModel):
 
 async def get_tracklist_link(
     client: httpx.AsyncClient,  # noqa: B008
+    sc_client_id: str,
+    sc_oauth_token: str,
 ) -> Optional[str]:
     """Get NTS tracklist URL for current track"""
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/getState",
     )
     state = State.parse_obj(r.json())
-    if state.artist != "NTS Radio":
+    if "NTS" not in state.artist:
         return None
 
-    if state.service == "mixcloud":
+    if state.uri.startswith("mixcloud"):
         nts_link = await get_nts_link_from_mixcloud(state.title, client)
-    elif state.service == "soundcloud":
-        nts_link = await get_nts_link_from_soundcloud(state.title, client)
+    elif state.uri.startswith("soundcloud"):
+        nts_link = await get_nts_link_from_soundcloud(
+            state.title, client, client_id=sc_client_id, oauth_token=sc_oauth_token
+        )
     else:
         return None
 
@@ -44,20 +48,19 @@ async def get_tracklist_link(
 
 
 async def get_nts_link_from_soundcloud(
-    name: str, client: httpx.AsyncClient
+    name: str, client: httpx.AsyncClient, client_id: str, oauth_token: str
 ) -> Optional[str]:
     """Find a link to NTS show episode page via SoundCloud API"""
-    client_id = os.environ["SOUNDCLOUD_CLIENT_ID"]
-    oauth_token = os.environ["SOUNDCLOUD_OAUTH_TOKEN"]
-
     api_url = (
         f"https://api-v2.soundcloud.com/"
         f"search?q={quote_plus(name)}&client_id={client_id}"
     )
+
     r = await client.get(
         api_url,
         headers={"Authorization": f"OAuth {oauth_token}"},
     )
+
     if r.status_code != 200:
         return None
 
