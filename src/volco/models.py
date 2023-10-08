@@ -98,3 +98,9 @@ class PlaylistRules(BaseModel):
 class PlayerResponse(BaseModel):
     time: int
     response: str
+
+
+class MixcloudResult(BaseModel):
+    key: str
+    url: str
+    name: str
