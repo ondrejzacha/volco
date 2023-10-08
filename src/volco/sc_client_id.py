@@ -62,5 +62,5 @@ async def get_client_id_mobile(client: httpx.AsyncClient) -> str:
     if not client_id_match:
         raise RuntimeError("Could not find client ID")
     client_id = client_id_match.group(1)
-    
+
     return client_id
