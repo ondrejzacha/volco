@@ -1,6 +1,5 @@
 import json
-import os
-from typing import Any, Dict, Optional
+from typing import Dict
 
 import httpx
 import pydantic
@@ -141,16 +140,11 @@ async def get_status(
 @app.get("/tracklist", response_model=None)
 async def get_tracklist(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Optional[RedirectResponse]:
-    try:
-        sc_client_id = os.environ["SOUNDCLOUD_CLIENT_ID"]
-        sc_oauth_token = os.environ["SOUNDCLOUD_OAUTH_TOKEN"]
-    except KeyError:
-        raise HTTPException(503, "SoundCloud credentials not available")
+) -> RedirectResponse:
+    state = await get_status(client)
 
-    tracklist_link = await get_tracklist_link(
-        client, sc_client_id=sc_client_id, sc_oauth_token=sc_oauth_token
-    )
-    if tracklist_link is not None:
-        return RedirectResponse(tracklist_link)
-    return None
+    if "NTS" not in state.artist:
+        raise HTTPException(400, "Not an NTS track")
+
+    tracklist_link = await get_tracklist_link(state, client)
+    return RedirectResponse(tracklist_link)

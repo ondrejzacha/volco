@@ -4,68 +4,43 @@ Very specific module to find links to NTS show tracklists
 for currenly playing tracks.
 """
 
-import os
 import re
-from typing import Optional
+from typing import Dict, Optional
 from urllib.parse import quote_plus
 
 import httpx
-from pydantic import BaseModel
+from fastapi import HTTPException
 
-from .constants import VOLUMIO_API_URL
-from .models import State
-
-
-class MixcloudResult(BaseModel):
-    key: str
-    url: str
-    name: str
+from .models import MixcloudResult, State
+from .sc_client_id import get_client_id
 
 
 async def get_tracklist_link(
+    state: State,
     client: httpx.AsyncClient,  # noqa: B008
-    sc_client_id: str,
-    sc_oauth_token: str,
-) -> Optional[str]:
-    """Get NTS tracklist URL for current track"""
-    r = await client.get(
-        f"http://{VOLUMIO_API_URL}/api/v1/getState",
-    )
-    state = State.parse_obj(r.json())
-    if "NTS" not in state.artist:
-        return None
-
+) -> str:
+    """Get NTS tracklist URL from given state"""
     if state.uri.startswith("mixcloud"):
-        nts_link = await get_nts_link_from_mixcloud(state.title, client)
+        return await get_nts_link_from_mixcloud(state.title, client)
     elif state.uri.startswith("soundcloud"):
-        nts_link = await get_nts_link_from_soundcloud(
-            state.title, client, client_id=sc_client_id, oauth_token=sc_oauth_token
-        )
-    else:
-        return None
-
-    return nts_link
+        return await get_nts_link_from_soundcloud(state.title, client)
+    raise HTTPException(400, "Only SoundCloud and Mixcloud tracks are supported.")
 
 
-async def get_nts_link_from_soundcloud(
-    name: str, client: httpx.AsyncClient, client_id: str, oauth_token: str
-) -> Optional[str]:
+async def get_nts_link_from_soundcloud(name: str, client: httpx.AsyncClient) -> str:
     """Find a link to NTS show episode page via SoundCloud API"""
+    client_id = await get_client_id(client)
     api_url = (
         f"https://api-v2.soundcloud.com/"
         f"search?q={quote_plus(name)}&client_id={client_id}"
     )
 
-    r = await client.get(
-        api_url,
-        headers={"Authorization": f"OAuth {oauth_token}"},
-    )
-
+    r = await client.get(api_url)
     if r.status_code != 200:
-        return None
+        raise HTTPException(404, "Could not get link via SoundCloud API")
 
     track_results = r.json().get("collection", [])
-    first_result = next(iter(track_results), {})
+    first_result: Dict[str, str] = next(iter(track_results), {})
     description = first_result.get("description", "")
 
     nts_link = _extract_link(description)
@@ -73,19 +48,17 @@ async def get_nts_link_from_soundcloud(
     return nts_link
 
 
-async def get_nts_link_from_mixcloud(
-    name: str, client: httpx.AsyncClient
-) -> Optional[str]:
+async def get_nts_link_from_mixcloud(name: str, client: httpx.AsyncClient) -> str:
     """Find a link to NTS show episode page on Mixcloud track page"""
     track_url = await _find_mixcloud_track_url(name, client)
 
     if track_url is None:
-        return None
+        raise HTTPException(404, "Could not find Mixcloud URL")
 
     api_url = track_url.replace("www.mixcloud", "api.mixcloud")
     r = await client.get(api_url)
     if r.status_code != 200:
-        return None
+        raise HTTPException(404, "Could not get link via Mixcloud API")
 
     description = r.json()["description"]
     nts_link = _extract_link(description)
@@ -113,5 +86,9 @@ async def _find_mixcloud_track_url(
     )
 
 
-def _extract_link(description: str) -> Optional[str]:
-    return next(iter(re.findall(r"https://www.nts.live[/\w\-]+", description)), None)
+def _extract_link(description: str) -> str:
+    """Extract NTS link from track description"""
+    link = next(iter(re.findall(r"https://www.nts.live[/\w\-]+", description)), None)
+    if not link:
+        raise HTTPException(404, "NTS link not found.")
+    return link
