@@ -7,13 +7,14 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Archivo:400,600,900">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
     <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
     <div class="container">
         <a href="/">&larr; Back to home</a>
         <h1>{{ playlist_name }}</h1>
-        <ul class="padded"> 
+        <ul class="padded">
             {% for track in tracks %}
             <li>
                 <div>
