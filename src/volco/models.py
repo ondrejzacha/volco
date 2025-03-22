@@ -14,9 +14,9 @@ class ListItem(BaseModel):
     type: str
     title: str
     uri: str
+    duration: Optional[int] = None
     album: Optional[str] = None
     artist: Optional[str] = None
-    duration: Optional[int] = None
     albumart: Optional[str] = None
     year: Union[str, int, None] = None
     icon: Optional[str] = None
@@ -84,6 +84,7 @@ class State(BaseModel, extra=Extra.ignore):
     title: str
     artist: str
     seek: int
+    duration: int
 
 
 class StateLog(BaseModel):
