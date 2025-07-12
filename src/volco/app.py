@@ -4,18 +4,22 @@ from pathlib import Path
 import httpx
 import pydantic
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from socketIO_client import SocketIO
 from starlette.routing import Mount
 
 from volco.constants import (
     INDEX_PATH,
     PLAYLIST_PATTERN_PATH,
+    SOCKETIO_PORT,
     TEMPLATE_DIR,
     VOLUMIO_API_URL,
+    VOLUMIO_URL,
 )
-from volco.models import PlayerResponse, PlaylistRules, State
+from volco.controller import VolumioController
+from volco.models import ListItem, PlayerResponse, PlaylistRules, State
 from volco.tracklist import get_tracklist_link
 
 Path("static/playlists").mkdir(parents=True, exist_ok=True)
@@ -51,6 +55,16 @@ async def get_client():
         # yield the client to the endpoint function
         yield client
         # close the client when the request is done
+
+
+def get_controller():
+    # Create a new SocketIO connection and controller for each request
+    socketio = SocketIO(VOLUMIO_URL, SOCKETIO_PORT)
+    controller = VolumioController(socketio)
+    try:
+        yield controller
+    finally:
+        socketio.disconnect()
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -154,3 +168,41 @@ async def get_tracklist(
 
     tracklist_link = await get_tracklist_link(state, client)
     return RedirectResponse(tracklist_link)
+
+
+@app.get("/api/playlists", response_class=JSONResponse)
+async def api_list_playlists(
+    controller: VolumioController = Depends(get_controller),  # noqa: B008
+) -> list[str]:
+    """
+    Get a list of all available playlists.
+
+    Returns:
+        List[str]: A list of playlist names
+    """
+    playlists = controller.list_playlists()
+    return playlists
+
+
+@app.get("/api/playlists/{playlist_name}/tracks", response_class=JSONResponse)
+async def api_list_tracks(
+    playlist_name: str,
+    controller: VolumioController = Depends(get_controller),  # noqa: B008
+) -> list[ListItem]:
+    """
+    Get a list of tracks in a specific playlist.
+
+    Args:
+        playlist_name: The name of the playlist to get tracks from
+
+    Returns:
+        List[ListItem]: A list of tracks in the playlist
+    """
+    try:
+        tracks = controller.list_tracks(playlist_name)
+        return tracks
+    except Exception as e:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Error retrieving tracks for playlist '{playlist_name}': {str(e)}",
+        ) from e
