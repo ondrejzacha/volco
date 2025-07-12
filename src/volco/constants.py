@@ -1,5 +1,9 @@
 # TODO: move this to config
+import os
+import sys
+from pathlib import Path
 
+os.chdir(Path(__file__).parent.parent.parent)
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -10,6 +14,8 @@ PLAYLIST_PATTERN_PATH = Path("static/playlist_patterns.json")
 INDEX_PATH = Path("static/index.html")
 PLAYLIST_TEMPLATE_HTML = "list.html"
 INDEX_TEMPLATE_HTML = "index.html"
+
+print(f"{PLAYLIST_PATTERN_PATH.absolute()=}", file=sys.stderr)
 
 if not PLAYLIST_PATTERN_PATH.exists():
     PLAYLIST_PATTERN_PATH.write_text("{}")

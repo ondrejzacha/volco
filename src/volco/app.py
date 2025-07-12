@@ -1,11 +1,18 @@
+import os
+import sys
+
+print("Starting Volco MCP server...", file=sys.stderr)
+
+
 import json
 from pathlib import Path
 
 import httpx
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastmcp import FastMCP
 from pydantic import ValidationError
 from socketIO_client import SocketIO
 from starlette.routing import Mount
@@ -22,6 +29,7 @@ from volco.controller import VolumioController
 from volco.models import ListItem, PlayerResponse, PlaylistRules, State
 from volco.tracklist import get_tracklist_link
 
+os.chdir(Path(__file__).parent.parent.parent)
 Path("static/playlists").mkdir(parents=True, exist_ok=True)
 Path("logs").mkdir(parents=True, exist_ok=True)
 Path("static").mkdir(parents=True, exist_ok=True)
@@ -72,7 +80,7 @@ async def get_index():
     return index_html
 
 
-@app.get("/patterns", response_class=HTMLResponse)
+@app.get("/patterns", response_class=HTMLResponse, operation_id="get_patterns")
 async def get_patterns(request: Request):
     current_patterns = (
         PLAYLIST_PATTERN_PATH.read_text() if PLAYLIST_PATTERN_PATH.exists() else "{}"
@@ -86,7 +94,7 @@ async def get_patterns(request: Request):
     )
 
 
-@app.post("/patterns/submit")
+@app.post("/patterns/submit", operation_id="submit_patterns")
 async def submit_patterns(
     playlist_rules: str = Form(),
 ) -> str:
@@ -103,12 +111,12 @@ async def submit_patterns(
     return "Playlist rules updated."
 
 
-@app.get("/health")
+@app.get("/health", operation_id="get_health")
 async def get_health():
     return "OK"
 
 
-@app.post("/playback/replace")
+@app.post("/playback/replace", operation_id="replace_playback")
 async def play_track(
     uri: str = Form(),
     service: str = Form(),
@@ -124,7 +132,7 @@ async def play_track(
 
 
 # play, post, status redirected to stay on the same port (volumio API runs on port 3000)
-@app.post("/playback/play")
+@app.post("/playback/play", operation_id="play_playback")
 async def play(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> PlayerResponse:
@@ -135,10 +143,11 @@ async def play(
     return PlayerResponse.model_validate(r.json())
 
 
-@app.post("/playback/pause")
+@app.post("/playback/pause", operation_id="pause_playback")
 async def pause(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> PlayerResponse:
+    print("Pausing playback", file=sys.stderr)
     # This needs localhost as the call is made on server side
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/commands/?cmd=pause",
@@ -146,7 +155,7 @@ async def pause(
     return PlayerResponse.model_validate(r.json())
 
 
-@app.get("/playback/status")
+@app.get("/playback/status", operation_id="get_status")
 async def get_status(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> State:
@@ -157,7 +166,7 @@ async def get_status(
     return State.model_validate(r.json())
 
 
-@app.get("/tracklist", response_model=None)
+@app.get("/tracklist", response_model=None, operation_id="get_tracklist")
 async def get_tracklist(
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> RedirectResponse:
@@ -170,7 +179,7 @@ async def get_tracklist(
     return RedirectResponse(tracklist_link)
 
 
-@app.get("/api/playlists", response_class=JSONResponse)
+@app.get("/api/playlists", operation_id="api_list_playlists")
 async def api_list_playlists(
     controller: VolumioController = Depends(get_controller),  # noqa: B008
 ) -> list[str]:
@@ -184,7 +193,11 @@ async def api_list_playlists(
     return playlists
 
 
-@app.get("/api/playlists/{playlist_name}/tracks", response_class=JSONResponse)
+@app.get(
+    "/api/playlists/{playlist_name}/tracks",
+    # response_class=JSONResponse,
+    operation_id="api_list_tracks",
+)
 async def api_list_tracks(
     playlist_name: str,
     controller: VolumioController = Depends(get_controller),  # noqa: B008
@@ -206,3 +219,10 @@ async def api_list_tracks(
             status_code=404,
             detail=f"Error retrieving tracks for playlist '{playlist_name}': {str(e)}",
         ) from e
+
+
+# Convert FastAPI app to MCP server
+mcp = FastMCP.from_fastapi(app=app)
+
+if __name__ == "__main__":
+    mcp.run()  # Run as MCP server

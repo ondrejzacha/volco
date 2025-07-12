@@ -58,7 +58,7 @@ class VolumioController:
             message_in="pushListPlaylist",
             response_model=ResultList,
         )
-        playlists = result_obj.__root__
+        playlists = result_obj.root
         return playlists
 
     def add_to_playlist(self, playlist: str, service: str, uri: str) -> ToastMessage:
