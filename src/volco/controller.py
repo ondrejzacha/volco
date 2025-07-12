@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, List, Optional, Union
+from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel
 from socketIO_client import SocketIO
@@ -9,7 +10,7 @@ from .models import BrowseResponse, ListItem, ResultList, ToastMessage, VolumioR
 class VolumioController:
     def __init__(self, socketio: SocketIO):
         self.socketio = socketio
-        self.responses: Dict[str, Any] = {}
+        self.responses: dict[str, Any] = {}
 
     def _create_callback(self, message: str) -> Callable[[Any], None]:
         def inner(*args):
@@ -23,7 +24,7 @@ class VolumioController:
     def _emit(self, *args):
         self.socketio.emit(*args)
 
-    def _get_response(self, message: str) -> Optional[tuple]:
+    def _get_response(self, message: str) -> tuple | None:
         self.socketio.wait(0.5)
         response = self.responses.get(message)
         return response
@@ -31,10 +32,10 @@ class VolumioController:
     def call(
         self,
         message_out: str,
-        message_in: Optional[str] = None,
+        message_in: str | None = None,
         data: Any = None,
-        response_model: Optional[BaseModel] = None,
-    ) -> Union[BaseModel, tuple, None]:
+        response_model: BaseModel | None = None,
+    ) -> BaseModel | tuple | None:
         if message_in:
             self._listen_for(message_in)
 
@@ -51,7 +52,7 @@ class VolumioController:
             return response_model.parse_obj(response[0])
         return response
 
-    def list_playlists(self) -> List[str]:
+    def list_playlists(self) -> list[str]:
         result_obj: ResultList = self.call(
             message_out="listPlaylist",
             message_in="pushListPlaylist",
@@ -101,7 +102,7 @@ class VolumioController:
 
     # also volumio REST API
     # TODO: other lists
-    def list_tracks(self, playlist: str) -> List[ListItem]:
+    def list_tracks(self, playlist: str) -> list[ListItem]:
         result_obj: BrowseResponse = self.call(
             message_out="browseLibrary",
             message_in="pushBrowseLibrary",

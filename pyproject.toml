@@ -21,14 +21,32 @@ refresh = "volco.updater:main"
 
 [dependency-groups]
 dev = [
-    # "black>=22.12.0,<23",
-    # "mypy>=0.991,<0.992",
-    # "flake8~=5.0",
-    # "jupyterlab>=3.5.2,<4",
-    # "isort>=5.11.4,<6",
     "ruff>=0.12.3",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+
+
+[tool.ruff]
+target-version = "py311"
+extend-exclude = ["*.ipynb"]
+
+[tool.ruff.lint]
+# See https://docs.astral.sh/ruff/rules
+select = [
+    "E",  # pycodestyle, generic rules
+    "F",  # Pyflakes, generic rules
+    "B",  # bugbear - best practices
+    "I",  # isort
+    "RUF100",  # unused noqa 
+    "ARG",  # unused arguments
+    "T20",  # no print() statements
+    "UP",  # upgrade to latest Python features
+    "W505",  # comment/docstring line length
+]
+ignore = [
+    "E501",  # line length handled by ruff format
+]

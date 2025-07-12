@@ -1,6 +1,6 @@
 import logging
+from collections.abc import Callable, Collection
 from functools import partial
-from typing import Callable, Collection, List, Optional
 
 import httpx
 
@@ -28,12 +28,12 @@ def stop_on_overlap(
 
 
 def browse_tracks(
-    uri: str, stop_condition: Optional[StopCondition] = None
-) -> List[ListItem]:
+    uri: str, stop_condition: StopCondition | None = None
+) -> list[ListItem]:
     if stop_condition is None:
         stop_condition = partial(stop_on_max_tracks, max_tracks=5000)
 
-    all_tracks: List[ListItem] = []
+    all_tracks: list[ListItem] = []
 
     while not stop_condition(all_tracks):
         r = httpx.get(f"http://{VOLUMIO_API_URL}/api/v1/browse?uri={uri}")

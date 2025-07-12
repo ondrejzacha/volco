@@ -1,8 +1,8 @@
 # TODO: move this to config
 
-from pathlib import Path
-import urllib.request
 import urllib.error
+import urllib.request
+from pathlib import Path
 
 TEMPLATE_DIR = Path("templates")
 PLAYLIST_HTML_DIR = Path("static/playlists/")  # TODO: auto mkdir

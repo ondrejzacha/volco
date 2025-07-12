@@ -1,8 +1,8 @@
 import json
 import logging
 from collections import Counter
+from collections.abc import Collection, Mapping
 from functools import partial
-from typing import Collection, Dict, List, Mapping, Optional, Set
 
 import jinja2
 from socketIO_client import SocketIO
@@ -45,7 +45,7 @@ def remove_playlist_duplicates(playlist: str, controller: VolumioController) -> 
 
 def filter_tracks(
     tracks: Collection[ListItem], patterns: Collection[str]
-) -> List[ListItem]:
+) -> list[ListItem]:
     return [
         track
         for track in tracks
@@ -77,7 +77,7 @@ def update_new_additions_playlist(
 
 def generate_html_files(
     vc: VolumioController,
-    track_progress: Optional[Mapping[str, int]] = None,
+    track_progress: Mapping[str, int] | None = None,
 ) -> None:
     logger.info("Generating HTML pages for playlists.")
 
@@ -87,7 +87,7 @@ def generate_html_files(
 
     playlists = vc.list_playlists()
 
-    playlist_files: Dict[str, str] = {}
+    playlist_files: dict[str, str] = {}
     for playlist in playlists:
         tracks = vc.list_tracks(playlist)
 
@@ -115,14 +115,14 @@ def generate_filename(name: str) -> str:
     return f"{name}.html"
 
 
-def find_candidate_tracks() -> List[ListItem]:
+def find_candidate_tracks() -> list[ListItem]:
     # TODO: this uses REST API
     existing_tracks = browse_tracks(f"playlists/{LATEST_50_NAME}")
     stop_condition = partial(
         stop_on_overlap, existing_tracks=existing_tracks, min_overlap=5
     )
 
-    all_tracks: List[ListItem] = []
+    all_tracks: list[ListItem] = []
     for track_source in TRACK_SOURCES:
         source_tracks = browse_tracks(track_source, stop_condition=stop_condition)
         logger.info(f"Got {len(source_tracks)} tracks from {track_source}")
@@ -136,7 +136,7 @@ def update_playlists(
     playlist_patterns: Mapping[str, Collection[str]],
     vc: VolumioController,
 ) -> None:
-    all_new_tracks: Set[ListItem] = set()
+    all_new_tracks: set[ListItem] = set()
 
     for playlist, patterns in playlist_patterns.items():
         logger.info(f"Handling playlist `{playlist}`")

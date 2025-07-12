@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Dict
 
 import httpx
 import pydantic
@@ -75,12 +74,14 @@ async def get_patterns(request: Request):
 
 @app.post("/patterns/submit")
 async def submit_patterns(
-    playlist_rules: str = Form(),  # noqa: B008
+    playlist_rules: str = Form(),
 ) -> str:
     try:
         parsed_rules = PlaylistRules.parse_raw(playlist_rules)
     except (json.JSONDecodeError, pydantic.error_wrappers.ValidationError) as e:
-        raise HTTPException(status_code=400, detail=f"Wrong format. Full message: {e}.")
+        raise HTTPException(
+            status_code=400, detail=f"Wrong format. Full message: {e}."
+        ) from e
 
     new_rules_json = json.dumps(parsed_rules.__root__, indent=2)
     PLAYLIST_PATTERN_PATH.write_text(new_rules_json)
@@ -95,10 +96,10 @@ async def get_health():
 
 @app.post("/playback/replace")
 async def play_track(
-    uri: str = Form(),  # noqa: B008
-    service: str = Form(),  # noqa: B008
+    uri: str = Form(),
+    service: str = Form(),
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Used to accept form data input."""
     # This needs localhost as the call is made on server side
     r = await client.post(

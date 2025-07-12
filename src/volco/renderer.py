@@ -1,6 +1,6 @@
 import logging
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import datetime
-from typing import Dict, Iterable, Mapping, Sequence
 
 import jinja2
 import pydantic
@@ -10,9 +10,9 @@ from volco.models import ListItem, StateLog, strip_uri
 logger = logging.getLogger(__name__)
 
 
-def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
-    max_seek_positions: Dict[str, int] = {}
-    durations: Dict[str, int] = {}
+def extract_progress(logs: Iterable[str]) -> dict[str, int]:
+    max_seek_positions: dict[str, int] = {}
+    durations: dict[str, int] = {}
 
     # Extract max seek position for each URI
     for line in logs:
@@ -29,7 +29,7 @@ def extract_progress(logs: Iterable[str]) -> Dict[str, int]:
         durations[uri] = log.state.duration
 
     # Calculate progress percentage
-    progress: Dict[str, int] = {}
+    progress: dict[str, int] = {}
     for uri, duration in durations.items():
         # "Seek" is in microseconds, duration in seconds
         max_seek_seconds = max_seek_positions[uri] / 1000

@@ -5,7 +5,6 @@ for currenly playing tracks.
 """
 
 import re
-from typing import Dict, Optional
 from urllib.parse import quote_plus
 
 import httpx
@@ -17,7 +16,7 @@ from .sc_client_id import get_client_id
 
 async def get_tracklist_link(
     state: State,
-    client: httpx.AsyncClient,  # noqa: B008
+    client: httpx.AsyncClient,
 ) -> str:
     """Get NTS tracklist URL from given state"""
     if state.uri.startswith("mixcloud"):
@@ -40,7 +39,7 @@ async def get_nts_link_from_soundcloud(name: str, client: httpx.AsyncClient) -> 
         raise HTTPException(404, "Could not get link via SoundCloud API")
 
     track_results = r.json().get("collection", [])
-    first_result: Dict[str, str] = next(iter(track_results), {})
+    first_result: dict[str, str] = next(iter(track_results), {})
     description = first_result.get("description", "")
 
     nts_link = _extract_link(description)
@@ -66,9 +65,7 @@ async def get_nts_link_from_mixcloud(name: str, client: httpx.AsyncClient) -> st
     return nts_link
 
 
-async def _find_mixcloud_track_url(
-    name: str, client: httpx.AsyncClient
-) -> Optional[str]:
+async def _find_mixcloud_track_url(name: str, client: httpx.AsyncClient) -> str | None:
     """Search Mixcloud tracks by title"""
     url = f"https://api.mixcloud.com/search/?q={name}&type=cloudcast"
     r = await client.get(url)

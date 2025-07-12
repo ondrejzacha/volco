@@ -1,6 +1,5 @@
 import datetime
 import re
-from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, Extra
 
@@ -14,12 +13,12 @@ class ListItem(BaseModel):
     type: str
     title: str
     uri: str
-    duration: Optional[int] = None
-    album: Optional[str] = None
-    artist: Optional[str] = None
-    albumart: Optional[str] = None
-    year: Union[str, int, None] = None
-    icon: Optional[str] = None
+    duration: int | None = None
+    album: str | None = None
+    artist: str | None = None
+    albumart: str | None = None
+    year: str | int | None = None
+    icon: str | None = None
 
     def __hash__(self):
         return hash(self.service + self.uri)
@@ -47,14 +46,14 @@ def strip_uri(uri):
 
 
 class ListContainer(BaseModel):
-    title: Optional[str] = None
-    availableListViews: List[str]
-    items: List[ListItem]
+    title: str | None = None
+    availableListViews: list[str]
+    items: list[ListItem]
 
 
 class Navigation(BaseModel):
     prev: UriItem
-    lists: List[ListContainer]
+    lists: list[ListContainer]
     info: ListItem
 
 
@@ -64,11 +63,11 @@ class BrowseResponse(BaseModel):
 
 class VolumioResponse(BaseModel):
     success: bool
-    reason: Optional[str]
+    reason: str | None
 
 
 class ResultList(BaseModel):
-    __root__: List[str]
+    __root__: list[str]
 
 
 class ToastMessage(BaseModel):
@@ -93,7 +92,7 @@ class StateLog(BaseModel):
 
 
 class PlaylistRules(BaseModel):
-    __root__: Dict[str, List[str]]
+    __root__: dict[str, list[str]]
 
 
 class PlayerResponse(BaseModel):
