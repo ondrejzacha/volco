@@ -5,9 +5,7 @@ description = ""
 authors = [{ name = "Ondrej Zacha", email = "zachaondrej@gmail.com" }]
 requires-python = ">=3.10, <3.12"
 dependencies = [
-    "httpx>=0.23.1,<0.24",
     "fastapi>=0.100.0",
-    "uvicorn>=0.20.0,<0.21",
     "socketIO-client>=0.7.2,<0.8",
     "pydantic>=2.0.0,<3.0.0",
     "python-multipart>=0.0.5,<0.0.6",
@@ -15,6 +13,9 @@ dependencies = [
     "requests==2.31.0",
     "pygments==2.15.0",
     "mypy>=1.16.1",
+    "uvicorn>=0.35.0",
+    "httpx>=0.28.1",
+    "fastmcp>=2.2.6",
 ]
 
 [project.scripts]
