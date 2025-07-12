@@ -3,7 +3,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from datetime import datetime
 
 import jinja2
-import pydantic
+from pydantic import ValidationError
 
 from volco.models import ListItem, StateLog, strip_uri
 
@@ -17,8 +17,8 @@ def extract_progress(logs: Iterable[str]) -> dict[str, int]:
     # Extract max seek position for each URI
     for line in logs:
         try:
-            log = StateLog.parse_raw(line)
-        except pydantic.error_wrappers.ValidationError:
+            log = StateLog.model_validate_json(line)
+        except ValidationError:
             continue
 
         if log.state.service not in {"mixcloud", "soundcloud"}:

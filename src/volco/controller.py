@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from socketIO_client import SocketIO
 
 from .models import BrowseResponse, ListItem, ResultList, ToastMessage, VolumioResponse
@@ -34,7 +34,7 @@ class VolumioController:
         message_out: str,
         message_in: str | None = None,
         data: Any = None,
-        response_model: BaseModel | None = None,
+        response_model: BaseModel | RootModel | None = None,
     ) -> BaseModel | tuple | None:
         if message_in:
             self._listen_for(message_in)
@@ -49,7 +49,7 @@ class VolumioController:
 
         response = self._get_response(message_in)
         if response_model is not None:
-            return response_model.parse_obj(response[0])
+            return response_model.model_validate(response[0])
         return response
 
     def list_playlists(self) -> list[str]:

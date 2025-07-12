@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, RootModel
 
 
 class UriItem(BaseModel):
@@ -63,11 +63,10 @@ class BrowseResponse(BaseModel):
 
 class VolumioResponse(BaseModel):
     success: bool
-    reason: str | None
+    reason: str | None = None
 
 
-class ResultList(BaseModel):
-    __root__: list[str]
+ResultList = RootModel[list[str]]
 
 
 class ToastMessage(BaseModel):
@@ -76,7 +75,7 @@ class ToastMessage(BaseModel):
     type: str
 
 
-class State(BaseModel, extra=Extra.ignore):
+class State(BaseModel):
     status: str
     service: str
     uri: str
@@ -85,14 +84,15 @@ class State(BaseModel, extra=Extra.ignore):
     seek: int
     duration: int
 
+    model_config = {"extra": "ignore"}
+
 
 class StateLog(BaseModel):
     ts: datetime.datetime
     state: State
 
 
-class PlaylistRules(BaseModel):
-    __root__: dict[str, list[str]]
+PlaylistRules = RootModel[dict[str, list[str]]]
 
 
 class PlayerResponse(BaseModel):

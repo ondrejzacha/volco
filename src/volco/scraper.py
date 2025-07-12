@@ -38,7 +38,7 @@ def browse_tracks(
     while not stop_condition(all_tracks):
         r = httpx.get(f"http://{VOLUMIO_API_URL}/api/v1/browse?uri={uri}")
         browse_json = r.json()
-        browse_response = BrowseResponse.parse_obj(browse_json)
+        browse_response = BrowseResponse.model_validate(browse_json)
 
         list_items = browse_response.navigation.lists[-1].items  # TODO: fix lists[-1]
 

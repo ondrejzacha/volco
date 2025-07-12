@@ -69,7 +69,7 @@ async def _find_mixcloud_track_url(name: str, client: httpx.AsyncClient) -> str 
     """Search Mixcloud tracks by title"""
     url = f"https://api.mixcloud.com/search/?q={name}&type=cloudcast"
     r = await client.get(url)
-    search_results = [MixcloudResult.parse_obj(obj) for obj in r.json()["data"]]
+    search_results = [MixcloudResult.model_validate(obj) for obj in r.json()["data"]]
 
     # Mixcloud API does not always return an exact match
     matching_urls = (

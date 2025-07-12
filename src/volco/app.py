@@ -2,11 +2,11 @@ import json
 from pathlib import Path
 
 import httpx
-import pydantic
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
 from socketIO_client import SocketIO
 from starlette.routing import Mount
 
@@ -91,13 +91,13 @@ async def submit_patterns(
     playlist_rules: str = Form(),
 ) -> str:
     try:
-        parsed_rules = PlaylistRules.parse_raw(playlist_rules)
-    except (json.JSONDecodeError, pydantic.error_wrappers.ValidationError) as e:
+        parsed_rules = PlaylistRules.model_validate_json(playlist_rules)
+    except (json.JSONDecodeError, ValidationError) as e:
         raise HTTPException(
             status_code=400, detail=f"Wrong format. Full message: {e}."
         ) from e
 
-    new_rules_json = json.dumps(parsed_rules.__root__, indent=2)
+    new_rules_json = json.dumps(parsed_rules.root, indent=2)
     PLAYLIST_PATTERN_PATH.write_text(new_rules_json)
 
     return "Playlist rules updated."
@@ -132,7 +132,7 @@ async def play(
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/commands/?cmd=play",
     )
-    return PlayerResponse.parse_obj(r.json())
+    return PlayerResponse.model_validate(r.json())
 
 
 @app.post("/playback/pause")
@@ -143,7 +143,7 @@ async def pause(
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/commands/?cmd=pause",
     )
-    return PlayerResponse.parse_obj(r.json())
+    return PlayerResponse.model_validate(r.json())
 
 
 @app.get("/playback/status")
@@ -154,7 +154,7 @@ async def get_status(
     r = await client.get(
         f"http://{VOLUMIO_API_URL}/api/v1/getState",
     )
-    return State.parse_obj(r.json())
+    return State.model_validate(r.json())
 
 
 @app.get("/tracklist", response_model=None)
