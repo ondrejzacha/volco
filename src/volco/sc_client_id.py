@@ -4,6 +4,7 @@ Adapted from
 https://github.com/patrickkfkan/soundcloud-fetch/blob/3cca5ead28bd84d59a1da7fd930a9917f623318b/src/lib/utils/SoundCloudKey.ts  # noqa: E501
 https://github.com/Tenpi/soundcloud.ts/blob/3cd9b864412e485aa7a8c3885d0695cc10f3485e/API.ts  # noqa: E501
 """
+
 import re
 
 import httpx

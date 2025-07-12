@@ -1,31 +1,34 @@
-[tool.poetry]
+[project]
 name = "volco"
 version = "0.1.0"
 description = ""
-authors = ["Ondrej Zacha <zachaondrej@gmail.com>"]
+authors = [{ name = "Ondrej Zacha", email = "zachaondrej@gmail.com" }]
+requires-python = "~=3.7"
+dependencies = [
+    "httpx>=0.23.1,<0.24",
+    "fastapi==0.97",
+    "uvicorn>=0.20.0,<0.21",
+    "socketIO-client>=0.7.2,<0.8",
+    "pydantic>=1.10.15,<2",
+    "python-multipart>=0.0.5,<0.0.6",
+    "Jinja2>=3.1.2,<4",
+    "requests==2.31.0",
+    "pygments==2.15.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-httpx = "^0.23.1"
-fastapi = "0.97"
-uvicorn = "^0.20.0"
-socketIO-client = "^0.7.2"
-pydantic = "^1.10.2"
-python-multipart = "^0.0.5"
-Jinja2 = "^3.1.2"
-requests = "2.31.0"
-pygments = "2.15.0"
+[project.scripts]
+refresh = "volco.updater:main"
 
-[tool.poetry.dev-dependencies]
-black = "^22.12.0"
-mypy = "^0.991"
-flake8 = "^5.0"
-jupyterlab = "^3.5.2"
-isort = "^5.11.4"
+[dependency-groups]
+dev = [
+    # "black>=22.12.0,<23",
+    # "mypy>=0.991,<0.992",
+    # "flake8~=5.0",
+    # "jupyterlab>=3.5.2,<4",
+    # "isort>=5.11.4,<6",
+    "ruff>=0.12.3",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-refresh = "volco.updater:main"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

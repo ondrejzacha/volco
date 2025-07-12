@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Dict
 
 import httpx
@@ -17,6 +18,10 @@ from volco.constants import (
 )
 from volco.models import PlayerResponse, PlaylistRules, State
 from volco.tracklist import get_tracklist_link
+
+Path("static/playlists").mkdir(parents=True, exist_ok=True)
+Path("logs").mkdir(parents=True, exist_ok=True)
+Path("static").mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
     routes=[
