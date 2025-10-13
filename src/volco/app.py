@@ -13,6 +13,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastmcp import FastMCP
+from fastmcp.server.openapi import RouteMap, RouteType
 from pydantic import ValidationError
 from socketIO_client import SocketIO
 from starlette.routing import Mount
@@ -118,11 +119,12 @@ async def get_health():
 
 @app.post("/playback/replace", operation_id="replace_playback")
 async def play_track(
-    uri: str = Form(),
-    service: str = Form(),
+    uri: str,  # = Form(),
+    service: str,  # = Form(),
     client: httpx.AsyncClient = Depends(get_client),  # noqa: B008
 ) -> dict[str, str]:
     """Used to accept form data input."""
+    print(f"Replacing playback with {uri=}, {service=}", file=sys.stderr)
     # This needs localhost as the call is made on server side
     r = await client.post(
         f"http://{VOLUMIO_API_URL}/api/v1/replaceAndPlay",
@@ -222,7 +224,13 @@ async def api_list_tracks(
 
 
 # Convert FastAPI app to MCP server
-mcp = FastMCP.from_fastapi(app=app)
+mcp = FastMCP.from_fastapi(
+    app=app,
+    route_maps=[
+        RouteMap(methods=["GET", "POST"], pattern=".*", route_type=RouteType.TOOL),
+        # RouteMap(methods=["POST"], pattern=".*", route_type=RouteType.RESOURCE),
+    ],
+)
 
 if __name__ == "__main__":
     mcp.run()  # Run as MCP server
