@@ -1,4 +1,3 @@
-import json
 import logging
 from collections.abc import Callable
 from typing import Any
@@ -128,19 +127,14 @@ class VolumioController:
             logger.warning(f"browse({uri!r}): no response received (timeout?)")
             return None
         raw = response[0]
-        logger.debug(
-            # Full raw JSON from the Volumio SoundCloud plugin browse API
-            f"browse({uri!r}) raw response:\n{json.dumps(raw, indent=2)}"
-        )
         try:
             return BrowseResponse.parse_obj(raw)
-        except Exception as exc:
+        except Exception:
             error = raw.get("error") if isinstance(raw, dict) else None
             if error == "No Result":
-                logger.info(f"browse({uri!r}): SoundCloud plugin returned 'No Result'")
                 return None
             logger.error(
-                f"browse({uri!r}): failed to parse response — {exc}\n"
+                f"browse({uri!r}): failed to parse response. "
                 f"Keys: {list(raw.keys()) if isinstance(raw, dict) else type(raw)}"
             )
             return None

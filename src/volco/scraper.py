@@ -31,10 +31,6 @@ def stop_on_overlap(
     track_uris = set(t.stripped_uri for t in tracks)
     existing_track_uris = set(t.stripped_uri for t in existing_tracks)
     overlap = set(track_uris).intersection(existing_track_uris)
-    logger.debug(
-        f"stop_on_overlap: {len(overlap)} overlap out of {len(tracks)} fetched "
-        f"vs {len(existing_tracks)} existing (threshold={min_overlap})"
-    )
     return len(overlap) >= min_overlap
 
 
@@ -69,49 +65,18 @@ def browse_tracks(
         stop_condition = partial(stop_on_max_tracks, max_tracks=5000)
 
     all_tracks: list[ListItem] = []
-    page_num = 0
-    original_uri = uri
-
-    logger.info(f"browse_tracks: starting URI={uri}")
 
     while not stop_condition(all_tracks):
-        page_num += 1
-        logger.debug(f"browse_tracks [{original_uri}]: fetching page {page_num} (uri={uri})")
-
         browse_response = _fetch_browse_response(uri, vc)
         if browse_response is None:
-            logger.info(
-                f"browse_tracks [{original_uri}]: no more results after {page_num - 1} pages, "
-                f"{len(all_tracks)} tracks total"
-            )
             break
 
-        logger.debug(
-            f"browse_tracks [{original_uri}]: page {page_num} response has "
-            f"{len(browse_response.navigation.lists)} list(s): "
-            + ", ".join(
-                f"[{i}] title={lst.title!r} items={len(lst.items)} "
-                f"types={list({it.type for it in lst.items})}"
-                for i, lst in enumerate(browse_response.navigation.lists)
-            )
-        )
         list_items = browse_response.navigation.lists[-1].items  # TODO: fix lists[-1]
 
-        page_tracks = 0
-        skipped_duplicates = 0
         for item in list_items:
             if item.type not in {"song", "folder"} or item in all_tracks:
-                if item.type in {"song", "folder"}:
-                    skipped_duplicates += 1
                 continue
             all_tracks.append(item)
-            page_tracks += 1
-
-        logger.info(
-            f"browse_tracks [{original_uri}]: page {page_num} — "
-            f"{page_tracks} new tracks, {skipped_duplicates} dupes skipped, "
-            f"{len(all_tracks)} total: {[t.title for t in all_tracks[-page_tracks:]] if page_tracks else []}"
-        )
 
         next_page = next(
             (
@@ -123,18 +88,9 @@ def browse_tracks(
             None,
         )
         if next_page is None:
-            logger.info(
-                f"browse_tracks [{original_uri}]: no more pages after {page_num} pages, "
-                f"{len(all_tracks)} tracks total"
-            )
+            logger.debug("No more pages")
             break
 
-        logger.debug(f"browse_tracks [{original_uri}]: next page URI={next_page.uri}")
         uri = next_page.uri
-    else:
-        logger.info(
-            f"browse_tracks [{original_uri}]: stop condition triggered after "
-            f"{page_num} pages, {len(all_tracks)} tracks collected"
-        )
 
     return all_tracks
