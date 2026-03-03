@@ -1,7 +1,6 @@
 # TODO: move this to config
 
-import urllib.error
-import urllib.request
+import os
 from pathlib import Path
 
 TEMPLATE_DIR = Path("templates")
@@ -19,22 +18,21 @@ N_LATEST = 50
 
 STATE_LOG_PATH = Path("logs/state.log")
 TRACK_PROGRESS_PATH = Path("logs/track_progress.json")
+CANDIDATE_TRACKS_PATH = Path("logs/candidate_tracks.json")
 
 TRACK_SOURCES = [
     "soundcloud/tracks@userId=995174173",  # NTS Monday
     "soundcloud/tracks@userId=995174689",  # NTS Tuesday
     "soundcloud/tracks@userId=995898355",  # NTS Wednesday
-    "soundcloud/tracks@userId=995897410",  # NTS Thursday
+    # "soundcloud/tracks@userId=995897410",  # NTS Thursday
     "soundcloud/tracks@userId=995888653",  # NTS Friday
-    "soundcloud/tracks@userId=995579326",  # NTS Saturday
+    # "soundcloud/tracks@userId=995579326",  # NTS Saturday
     "soundcloud/tracks@userId=995580424",  # NTS Sunday
+    "soundcloud/tracks@userId=995579326",  # NTS 2024-2025
+    "soundcloud/tracks@userId=995897410",  # NTS Latest
 ]
 
 SOCKETIO_PORT = 3000
-try:
-    response = urllib.request.urlopen(f"http://localhost:{SOCKETIO_PORT}")
-    VOLUMIO_URL = "localhost"
-except urllib.error.URLError:
-    VOLUMIO_URL = "192.168.2.22"
+VOLUMIO_URL = os.environ.get("VOLUMIO_URL", "localhost")
 
 VOLUMIO_API_URL = f"{VOLUMIO_URL}:3000"

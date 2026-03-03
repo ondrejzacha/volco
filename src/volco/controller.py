@@ -1,3 +1,5 @@
+import json
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -5,6 +7,8 @@ from pydantic import BaseModel
 from socketIO_client import SocketIO
 
 from .models import BrowseResponse, ListItem, ResultList, ToastMessage, VolumioResponse
+
+logger = logging.getLogger(__name__)
 
 
 class VolumioController:
@@ -24,10 +28,16 @@ class VolumioController:
     def _emit(self, *args):
         self.socketio.emit(*args)
 
-    def _get_response(self, message: str) -> tuple | None:
-        self.socketio.wait(0.5)
-        response = self.responses.get(message)
-        return response
+    def _get_response(self, message: str, timeout: float = 30.0) -> tuple | None:
+        elapsed = 0.0
+        interval = 0.5
+        while elapsed < timeout:
+            self.socketio.wait(interval)
+            elapsed += interval
+            response = self.responses.pop(message, None)
+            if response is not None:
+                return response
+        return None
 
     def call(
         self,
@@ -111,6 +121,34 @@ class VolumioController:
         )
         tracks = result_obj.navigation.lists[-1].items
         return tracks
+
+    def browse(self, uri: str) -> BrowseResponse | None:
+        response = self._get_raw_browse(uri)
+        if response is None:
+            logger.warning(f"browse({uri!r}): no response received (timeout?)")
+            return None
+        raw = response[0]
+        logger.debug(
+            # Full raw JSON from the Volumio SoundCloud plugin browse API
+            f"browse({uri!r}) raw response:\n{json.dumps(raw, indent=2)}"
+        )
+        try:
+            return BrowseResponse.parse_obj(raw)
+        except Exception as exc:
+            error = raw.get("error") if isinstance(raw, dict) else None
+            if error == "No Result":
+                logger.info(f"browse({uri!r}): SoundCloud plugin returned 'No Result'")
+                return None
+            logger.error(
+                f"browse({uri!r}): failed to parse response — {exc}\n"
+                f"Keys: {list(raw.keys()) if isinstance(raw, dict) else type(raw)}"
+            )
+            return None
+
+    def _get_raw_browse(self, uri: str) -> tuple | None:
+        self._listen_for("pushBrowseLibrary")
+        self._emit("browseLibrary", {"uri": uri})
+        return self._get_response("pushBrowseLibrary")
 
     # Playlists are also created by adding a track to a non-existent playlist
     def create_playlist(self, name: str):

@@ -52,9 +52,9 @@ class ListContainer(BaseModel):
 
 
 class Navigation(BaseModel):
-    prev: UriItem
+    prev: UriItem | None = None
     lists: list[ListContainer]
-    info: ListItem
+    info: ListItem | None = None
 
 
 class BrowseResponse(BaseModel):
