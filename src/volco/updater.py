@@ -9,6 +9,7 @@ from socketIO_client import SocketIO
 
 from volco.controller import VolumioController
 from volco.models import ListItem
+from volco.nts_client import fetch_nts_tracks
 from volco.renderer import extract_progress, render_index_file, render_playlist_page
 from volco.scraper import browse_tracks, stop_on_overlap
 
@@ -149,6 +150,32 @@ def find_candidate_tracks(vc: VolumioController) -> list[ListItem]:
 
     CANDIDATE_TRACKS_PATH.write_text(json.dumps(tracks_by_source, indent=2))
     logger.info(f"find_candidate_tracks: wrote candidate tracks to {CANDIDATE_TRACKS_PATH}")
+
+    return all_tracks
+
+
+def find_candidate_tracks_nts(vc: VolumioController) -> list[ListItem]:
+    """
+    Alternative to find_candidate_tracks() that uses the NTS API + SC oEmbed
+    instead of the Volumio SC plugin (which gets 403s from the SC API).
+    """
+    existing_tracks = browse_tracks(f"playlists/{LATEST_50_NAME}", vc=vc)
+    logger.info(
+        f"find_candidate_tracks_nts: {len(existing_tracks)} existing tracks in '{LATEST_50_NAME}'"
+    )
+
+    existing_uris = {t.stripped_uri for t in existing_tracks}
+    all_tracks = fetch_nts_tracks(existing_uris=existing_uris, min_overlap=5)
+    logger.info(f"find_candidate_tracks_nts: {len(all_tracks)} new candidate tracks")
+
+    tracks_by_source = [
+        {"source": "nts-api", "uri": t.stripped_uri, "title": t.title}
+        for t in all_tracks
+    ]
+    CANDIDATE_TRACKS_PATH.write_text(json.dumps(tracks_by_source, indent=2))
+    logger.info(
+        f"find_candidate_tracks_nts: wrote candidate tracks to {CANDIDATE_TRACKS_PATH}"
+    )
 
     return all_tracks
 
