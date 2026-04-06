@@ -90,8 +90,12 @@ def generate_html_files(
     playlists = vc.list_playlists()
 
     playlist_files: dict[str, str] = {}
+    latest_50_tracks: list = []
     for playlist in playlists:
         tracks = vc.list_tracks(playlist)
+
+        if playlist == LATEST_50_NAME:
+            latest_50_tracks = list(reversed(tracks))
 
         rendered = render_playlist_page(
             title=playlist,
@@ -107,7 +111,9 @@ def generate_html_files(
         output_path.write_text(rendered)
 
     index_template = environment.get_template(INDEX_TEMPLATE_HTML)
-    rendered_index = render_index_file(playlist_files, index_template)
+    rendered_index = render_index_file(
+        playlist_files, latest_50_tracks, track_progress or {}, index_template
+    )
     INDEX_PATH.write_text(rendered_index)
 
 

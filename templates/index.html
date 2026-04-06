@@ -12,6 +12,41 @@
     <div class="container">
         <h1>Volumio controller</h1>
 
+        {% if top_tracks %}
+        <h3>Latest tracks</h3>
+        <ul class="padded">
+            {% for track in top_tracks[:10] %}
+            <li>
+                <form action="/playback/replace" method="POST" enctype="multipart/form-data" target="responseframe"
+                    class="tracklink">
+                    <input type="hidden" name="service" value="{{ track.service }}">
+                    <input type="hidden" name="uri" value='{{ track.uri }}'>
+                    <input type="submit"
+                        value="{{ track.title }} ({{ track.progress }}%, {% if track.service == 'soundcloud' %}Sc{% elif track.service == 'mixcloud' %}Mc{% else %}?{% endif %})">
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% if top_tracks|length > 10 %}
+        <details>
+            <summary>Show {{ top_tracks|length - 10 }} more</summary>
+            <ul class="padded">
+                {% for track in top_tracks[10:] %}
+                <li>
+                    <form action="/playback/replace" method="POST" enctype="multipart/form-data" target="responseframe"
+                        class="tracklink">
+                        <input type="hidden" name="service" value="{{ track.service }}">
+                        <input type="hidden" name="uri" value='{{ track.uri }}'>
+                        <input type="submit"
+                            value="{{ track.title }} ({{ track.progress }}%, {% if track.service == 'soundcloud' %}Sc{% elif track.service == 'mixcloud' %}Mc{% else %}?{% endif %})">
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+        </details>
+        {% endif %}
+        {% endif %}
+
         <h3>Playlists</h3>
 
         <ul class="padded">

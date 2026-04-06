@@ -53,7 +53,7 @@ def render_playlist_page(
 ) -> str:
     track_data = [
         {**track.dict(), "progress": track_progress.get(track.stripped_uri, 0)}
-        for track in tracks
+        for track in reversed(tracks)
     ]
 
     rendered = template.render(
@@ -69,13 +69,19 @@ def render_playlist_page(
 
 def render_index_file(
     playlist_files: Mapping[str, str],
+    top_tracks: Sequence[ListItem],
+    track_progress: Mapping[str, int],
     template: jinja2.Template,
 ) -> str:
     playlist_urls = [
         {"name": playlist, "url": f"/playlists/{filename}"}
         for playlist, filename in playlist_files.items()
     ]
+    track_data = [
+        {**track.dict(), "progress": track_progress.get(track.stripped_uri, 0)}
+        for track in top_tracks
+    ]
 
-    rendered = template.render({"playlists": playlist_urls})
+    rendered = template.render({"playlists": playlist_urls, "top_tracks": track_data})
 
     return rendered
