@@ -63,8 +63,12 @@ VOLUMIO_URL=volumio.local uv run refresh
 The server has git and uv. Deploy by pushing to the repo and pulling on the server:
 
 ```bash
-# Pull latest and sync dependencies
-ssh volumio@volumio.local "cd /home/volumio/volco && git pull && uv sync"
+# Push (requires personal SSH key — default key is rejected by GitHub)
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519-personal" git push -u origin main
+
+# Pull latest, sync dependencies, and run refresh on the Pi
+# Note: uv is at /home/volumio/.local/bin/uv (not on PATH in non-interactive SSH sessions)
+ssh volumio@volumio.local "cd /home/volumio/volco && git pull && /home/volumio/.local/bin/uv sync && /home/volumio/.local/bin/uv run refresh"
 ```
 
 ## Notes
